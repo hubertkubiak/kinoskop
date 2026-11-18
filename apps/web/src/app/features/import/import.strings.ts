@@ -11,8 +11,16 @@ export const IMPORT_STRINGS = {
   safetyTitle: 'Czy to bezpieczne?',
   safety:
     'Skrypt tylko czyta Twoje dane z Filmwebu (zapytania GET), niczego nie zmienia i nigdzie niczego nie wysyła; jedynie zapisuje plik na Twoim dysku. Kod jest jawny powyżej. Ogólna zasada: nigdy nie wklejaj w konsolę kodu, którego nie rozumiesz albo którego źródłu nie ufasz.',
-  drop: 'Przeciągnij tutaj plik kinoskop-eksport-….json',
-  pick: 'albo wybierz plik',
+  drop: 'Przeciągnij tutaj plik kinoskop-eksport-….json albo pliki CSV',
+  pick: 'albo wybierz pliki',
+  csvTitle: 'Masz już eksport z innego narzędzia?',
+  csvLead:
+    'Kinoskop wczyta też pliki CSV w formacie Letterboxd – np. z Filmweb2Letterboxd (Title, Year, WatchedDate, Rating10) albo eksport z Letterboxd (Name, Year, Rating). Możesz wybrać kilka plików naraz; rodzaj (film, serial, gra) i listę (oceny, „chcę zobaczyć”) rozpoznamy po nazwie pliku.',
+  csvLimits:
+    'Takie pliki nie zawierają identyfikatorów Filmwebu ani ulubionych, więc tytuły dopasowujemy po nazwie i roku (wymaga klucza TMDB w API). Część pozycji może trzeba będzie potwierdzić w widoku Weryfikacja. Najdokładniejsze dane da skrypt powyżej.',
+  previewTitle: 'Sprawdź, co wczytamy',
+  previewConfirm: 'Importuj',
+  previewCancel: 'Anuluj',
   importSoon: 'Import wkrótce. Na razie możesz obejrzeć aplikację w trybie demo.',
   bookmarklet: 'Alternatywa: przeciągnij ten przycisk na pasek zakładek, a potem kliknij go na filmweb.pl. To ten sam skrypt w wersji zminifikowanej.',
   mobile: 'Import działa tylko na komputerze. Statystyki możesz przeglądać także na telefonie.',
@@ -21,6 +29,7 @@ export const IMPORT_STRINGS = {
     ['Skrypt przerwany (zamknięta karta, błąd sieci)', 'Uruchom go ponownie na tej samej karcie – postęp jest wznawiany.'],
     ['„Za dużo zapytań”', 'Skrypt sam zwalnia; przy uporczywych błędach spróbuj za kilka minut.'],
     ['Telefon lub tablet', 'Import działa tylko na komputerze, przeglądanie statystyk również na telefonie.'],
+    ['Mój plik CSV nie jest rozpoznawany', 'Plik musi mieć wiersz nagłówka z kolumną Title (albo Name). Opcjonalnie: Year, WatchedDate (RRRR-MM-DD), Rating10 (1–10) lub Rating (0,5–5 gwiazdek).'],
     ['Plik nie przechodzi walidacji', 'Komunikat wskaże wersję schematu. Upewnij się, że używasz najnowszego skryptu i zgłoś problem, jeśli błąd się powtarza.'],
   ] as const,
 } as const;

@@ -100,6 +100,55 @@
         </aside>
       </section>
 
+      <section class="ks-card p-5 mb-6" aria-labelledby="ks-csv-h">
+        <h3 id="ks-csv-h" class="font-semibold mb-2">{{ s.csvTitle }}</h3>
+        <p class="text-sm text-ks-muted mb-2">{{ s.csvLead }}</p>
+        <p class="text-sm text-ks-muted">{{ s.csvLimits }}</p>
+      </section>
+
+      @if (importer.pending(); as p) {
+        <section class="ks-card p-5 mb-6 border-ks-accent" aria-labelledby="ks-preview-h" data-testid="csv-preview">
+          <h3 id="ks-preview-h" class="font-semibold mb-3">{{ s.previewTitle }}</h3>
+          <ul class="text-sm mb-3 space-y-1">
+            @for (k of kinds; track k) {
+              @if (p.summary.counts[k].rated + p.summary.counts[k].want2see) {
+                <li>
+                  <strong>{{ kindLabels[k].many }}:</strong> {{ p.summary.counts[k].rated }} ocenionych,
+                  {{ p.summary.counts[k].want2see }} do obejrzenia
+                </li>
+              }
+            }
+          </ul>
+          <p class="text-sm text-ks-muted mb-1">
+            Pliki: {{ p.summary.files.length }}. Bez oceny: {{ p.summary.unrated }}. Pominięte duplikaty: {{ p.summary.duplicates }}.
+          </p>
+          @if (importer.api.awake() && !importer.api.config().tmdbEnabled) {
+            <p class="text-sm p-3 mb-3 rounded-ks-sm bg-ks-surface-2" role="note" data-testid="csv-no-tmdb">
+              <strong>Uwaga:</strong> API działa bez klucza TMDB, więc tytułów z CSV nie da się dopasować – zobaczysz
+              tylko statystyki ocen. Dodaj <code>TMDB_API_TOKEN</code> do <code>.env</code> i uruchom API ponownie.
+            </p>
+          }
+          <details class="text-sm text-ks-muted mb-4">
+            <summary class="cursor-pointer">Szczegóły plików</summary>
+            <ul class="mt-2 space-y-1">
+              @for (f of p.summary.files; track f.name) {
+                <li><code>{{ f.name }}</code> → {{ kindLabels[f.kind].many }}, {{ f.list === 'rated' ? 'oceny' : 'chcę zobaczyć' }}: {{ f.rows }} wierszy
+                  @if (f.skipped) {
+                    <span>(pominięte: {{ f.skipped }})</span>
+                  }
+                </li>
+              }
+            </ul>
+          </details>
+          <div class="flex gap-3">
+            <button type="button" class="ks-btn ks-btn-primary" data-testid="csv-confirm" [disabled]="importer.busy()" (click)="importer.confirmPending()">
+              {{ s.previewConfirm }}
+            </button>
+            <button type="button" class="ks-btn" (click)="importer.cancelPending()">{{ s.previewCancel }}</button>
+          </div>
+        </section>
+      }
+
       <section
         class="rounded-ks border-2 border-dashed p-10 text-center mb-8 transition-colors"
         [class.border-ks-accent]="dragOver()"
@@ -113,7 +162,7 @@
         <p class="mb-2">{{ s.drop }}</p>
         <label class="ks-btn cursor-pointer">
           {{ s.pick }}
-          <input #picker type="file" accept="application/json,.json" class="sr-only" data-testid="file-input" (change)="onPick(picker)" />
+          <input #picker type="file" multiple accept="application/json,.json,text/csv,.csv" class="sr-only" data-testid="file-input" (change)="onPick(picker)" />
         </label>
       </section>
 

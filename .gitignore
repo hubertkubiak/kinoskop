@@ -16,6 +16,7 @@ node_modules
 apps/api/data/
 data/
 fixtures/filmweb/private/
+fixtures/filmweb/example/
 
 # IDE
 /.idea

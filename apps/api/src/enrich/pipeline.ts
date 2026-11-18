@@ -6,6 +6,7 @@ import {
   emptyEnrichment,
   type Era,
   eraFromLabel,
+  isLocalId,
   type Kind,
   type Match,
   mapGenres,
@@ -66,7 +67,8 @@ export class EnrichmentPipeline {
     }
 
     // Wikidata lookup only for ids not known to be absent there.
-    const needWd = misses.filter((it) => !this.cache.get<boolean>('wd-miss', String(it.filmwebId)));
+    // Local ids (CSV imports, negative) have no Filmweb ID, so there is nothing to look up in Wikidata.
+    const needWd = misses.filter((it) => !isLocalId(it.filmwebId) && !this.cache.get<boolean>('wd-miss', String(it.filmwebId)));
     let wd = new Map<number, WikidataTitle>();
     if (needWd.length) {
       try {
@@ -76,7 +78,7 @@ export class EnrichmentPipeline {
         // Wikidata down: continue with search fallback where possible.
       }
     }
-    cacheHits += misses.length - needWd.length;
+    cacheHits += misses.filter((it) => !isLocalId(it.filmwebId)).length - needWd.length;
 
     const built = await Promise.all(
       misses.map(async (it) => {

@@ -2,7 +2,7 @@ import { Clipboard } from '@angular/cdk/clipboard';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { DomSanitizer, type SafeUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
-import { BRAND } from '@kinoskop/shared';
+import { BRAND, KIND_LABELS, KINDS } from '@kinoskop/shared';
 import { ENV } from '../../core/env';
 import { LibraryStore } from '../../core/library.store';
 import { FilmLeader } from '../../ui/film-leader';
@@ -65,9 +65,12 @@ export class ImportPage {
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.dragOver.set(false);
-    const file = event.dataTransfer?.files?.[0];
-    if (file) void this.importer.importFile(file);
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    if (files.length) void this.importer.importFiles(files);
   }
+
+  readonly kindLabels = KIND_LABELS;
+  readonly kinds = KINDS;
 
   onDragOver(event: DragEvent): void {
     event.preventDefault();
@@ -75,8 +78,8 @@ export class ImportPage {
   }
 
   onPick(input: HTMLInputElement): void {
-    const file = input.files?.[0];
-    if (file) void this.importer.importFile(file);
+    const files = Array.from(input.files ?? []);
+    if (files.length) void this.importer.importFiles(files);
     input.value = '';
   }
 }

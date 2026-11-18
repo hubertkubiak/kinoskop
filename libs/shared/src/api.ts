@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { EnrichmentSchema } from './enrichment';
-import { KindSchema } from './kinds';
+import { ItemIdSchema, KindSchema } from './kinds';
 
 export const ENRICH_MAX_ITEMS = 200;
 
@@ -10,7 +10,7 @@ export const ENRICH_MAX_ITEMS = 200;
  */
 export const EnrichRequestItemSchema = z
   .object({
-    filmwebId: z.number().int().positive(),
+    filmwebId: ItemIdSchema,
     kind: KindSchema,
     title: z.string().min(1).max(500).optional(),
     originalTitle: z.string().min(1).max(500).optional(),
@@ -65,7 +65,7 @@ export type SearchResponse = z.infer<typeof SearchResponseSchema>;
 /** POST /api/enrich/manual — resolve a user-picked candidate into a full enrichment. */
 export const ManualMatchRequestSchema = z
   .object({
-    filmwebId: z.number().int().positive(),
+    filmwebId: ItemIdSchema,
     kind: KindSchema,
     tmdbId: z.number().int().optional(),
     igdbId: z.number().int().optional(),

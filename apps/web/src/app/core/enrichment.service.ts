@@ -1,5 +1,5 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
-import { ENRICH_MAX_ITEMS, type EnrichRequestItem } from '@kinoskop/shared';
+import { ENRICH_MAX_ITEMS, type EnrichRequestItem, isLocalId } from '@kinoskop/shared';
 import { ApiClient } from './api.client';
 import type { ItemRow } from './db';
 import { LibraryStore } from './library.store';
@@ -54,8 +54,14 @@ export class EnrichmentService {
         this.phase.set('error');
         return;
       }
+      // Stage 1 (ids only) makes sense only for real Filmweb IDs; local ids (CSV) go straight to stage 2.
+      const withId = todo.filter((i) => !isLocalId(i.filmwebId));
+      const local = todo.filter((i) => isLocalId(i.filmwebId));
       this.phase.set('ids');
-      const unmatched = await this.runStage(todo, (i) => ({ filmwebId: i.filmwebId, kind: i.kind }));
+      const unmatched = [
+        ...(withId.length ? await this.runStage(withId, (i) => ({ filmwebId: i.filmwebId, kind: i.kind })) : []),
+        ...local,
+      ];
       const withTitles = unmatched.filter((i) => i.title || i.originalTitle);
       if (withTitles.length) {
         this.phase.set('titles');

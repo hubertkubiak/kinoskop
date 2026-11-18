@@ -146,6 +146,16 @@ describe('API', () => {
     expect(query.mock.calls.length).toBe(calls);
   });
 
+  it('never looks up local (CSV) ids in Wikidata and rejects id 0', async () => {
+    const { a, query } = await app();
+    const payload = { items: [{ filmwebId: -12345, kind: 'film', title: 'Paris, Texas', year: 1984 }] };
+    const res = (await a.inject({ method: 'POST', url: '/api/enrich', payload })).json();
+    expect(res.errors).toEqual([expect.objectContaining({ filmwebId: -12345, code: 'unmatched' })]);
+    expect(query.mock.calls.some(([q]) => String(q).includes('VALUES ?fw'))).toBe(false);
+    const zero = await a.inject({ method: 'POST', url: '/api/enrich', payload: { items: [{ filmwebId: 0, kind: 'film' }] } });
+    expect(zero.statusCode).toBe(400);
+  });
+
   it('serves the awards catalogue with an ETag', async () => {
     const { a } = await app();
     const res = await a.inject({ method: 'GET', url: '/api/awards' });

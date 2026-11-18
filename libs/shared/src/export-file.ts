@@ -1,11 +1,11 @@
 import { z } from 'zod';
-import { KindSchema, ListSchema } from './kinds';
+import { ItemIdSchema, KindSchema, ListSchema } from './kinds';
 
 /** Format version produced by libs/import-script. Bump on breaking change. */
 export const EXPORT_SCHEMA_VERSION = 1 as const;
 
 export const ExportItemSchema = z.object({
-  filmwebId: z.number().int().positive(),
+  filmwebId: ItemIdSchema,
   kind: KindSchema,
   list: ListSchema,
   rating: z.number().int().min(1).max(10).optional(),
@@ -21,7 +21,8 @@ export type ExportItem = z.infer<typeof ExportItemSchema>;
 export const ExportFileSchema = z.object({
   schemaVersion: z.literal(EXPORT_SCHEMA_VERSION),
   exportedAt: z.iso.datetime({ offset: true }),
-  source: z.literal('filmweb'),
+  // 'filmweb' = console script; 'csv' = converted in the browser from another tool's CSV.
+  source: z.enum(['filmweb', 'csv']),
   scriptVersion: z.string().max(20).optional(),
   user: z.object({ id: z.number().int(), name: z.string() }),
   items: z.array(ExportItemSchema).max(50_000),
