@@ -1,1 +1,1 @@
-export * from './lib/import-script';
+export {};
