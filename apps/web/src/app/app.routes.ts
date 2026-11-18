@@ -28,6 +28,18 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./features/overview/overview-page').then((m) => m.OverviewPage),
       },
       {
+        path: 'gatunki',
+        title: 'Gatunki – Kinoskop',
+        canActivate: [requireData],
+        loadComponent: () => import('./features/genres/genres-page').then((m) => m.GenresPage),
+      },
+      {
+        path: 'oceny',
+        title: 'Oceny – Kinoskop',
+        canActivate: [requireData],
+        loadComponent: () => import('./features/ratings/ratings-page').then((m) => m.RatingsPage),
+      },
+      {
         path: 'o-aplikacji',
         title: 'O aplikacji – Kinoskop',
         loadComponent: () => import('./features/about/about-page').then((m) => m.AboutPage),

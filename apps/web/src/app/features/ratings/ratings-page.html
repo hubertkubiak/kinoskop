@@ -1,0 +1,57 @@
+<h1 class="font-display text-4xl uppercase mb-5">Oceny</h1>
+
+@if (points().length === 0) {
+  <p class="ks-card p-4 mb-4 text-sm text-ks-muted">
+    Porównanie z oceną ogółu wymaga danych z TMDB (wzbogacanie z kluczem TMDB). W trybie demo opartym o Wikidata ta część jest pusta.
+  </p>
+}
+
+<div class="grid gap-4 xl:grid-cols-2 mb-6">
+  <ks-chart-card heading="Moje oceny vs ocena ogółu" subtitle="Średnie TMDB (vote_average) tylko przy ≥ 50 głosach"
+    [option]="histOption()" [table]="histTable()" />
+  <ks-chart-card heading="Ja vs TMDB" [subtitle]="correlation() !== undefined ? 'Korelacja Pearsona: ' + avg(correlation()! * 1) : undefined"
+    [option]="scatterOption()" [table]="scatterTable()" height="340px" [empty]="points().length === 0" />
+</div>
+
+<section class="grid gap-4 lg:grid-cols-2 mb-6" aria-label="Rozjazdy">
+  @for (list of [
+    { title: 'Bardziej mi się podobało niż innym', rows: div().likedMore },
+    { title: 'Mniej mi się podobało niż innym', rows: div().likedLess }
+  ]; track list.title) {
+    <div class="ks-card p-4">
+      <h2 class="font-display text-xl uppercase mb-3">{{ list.title }}</h2>
+      <ol class="space-y-1.5">
+        @for (r of list.rows; track r.key) {
+          <li class="flex items-center gap-3 text-sm">
+            <ks-ticket [rating]="r.mine" />
+            <span class="flex-1 truncate">{{ r.title }}</span>
+            <span class="tabular text-ks-muted">TMDB {{ avg(r.public) }}</span>
+            <span class="tabular w-12 text-right" [class.text-ks-positive]="r.diff > 0" [class.text-ks-negative]="r.diff < 0">
+              {{ r.diff > 0 ? '+' : '' }}{{ avg(r.diff) }}
+            </span>
+          </li>
+        } @empty {
+          <li class="text-sm text-ks-muted">Brak danych.</li>
+        }
+      </ol>
+    </div>
+  }
+</section>
+
+@if (api.config().criticsEnabled) {
+  <section class="ks-card p-4" aria-labelledby="ks-critics">
+    <h2 id="ks-critics" class="font-display text-xl uppercase mb-2">Ty vs krytycy</h2>
+    @if (critics().closest) {
+      <p class="mb-3">Twój gust jest najbliższy: <strong class="text-ks-accent">{{ critics().closest }}</strong></p>
+    }
+    <table class="ks-table">
+      <thead><tr><th scope="col">Źródło</th><th scope="col">Tytuły</th><th scope="col">Korelacja</th></tr></thead>
+      <tbody>
+        @for (s of critics().sources; track s.key) {
+          <tr><td>{{ s.label }}</td><td>{{ s.n }}</td><td>{{ s.r === undefined ? 'za mało danych' : avg(s.r) }}</td></tr>
+        }
+      </tbody>
+    </table>
+    <p class="text-xs text-ks-muted mt-2">Dane: OMDb API.</p>
+  </section>
+}
