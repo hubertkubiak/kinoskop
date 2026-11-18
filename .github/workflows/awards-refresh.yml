@@ -1,0 +1,34 @@
+# Optional in v1 (SPEC §12.1): weekly rebuild of the award catalogue from Wikidata.
+# Opens a pull request with the updated apps/api/src/assets/awards.json.
+name: Refresh awards catalogue
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm awards:refresh
+        env:
+          WIKIDATA_CONTACT: ${{ secrets.WIKIDATA_CONTACT }}
+      - run: pnpm nx test api
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/awards-refresh
+          commit-message: 'chore(awards): refresh award catalogue from Wikidata'
+          title: 'chore(awards): refresh award catalogue'
+          body: Weekly automatic rebuild of awards.json from Wikidata.

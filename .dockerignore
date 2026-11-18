@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+dist
+tmp
+.nx
+.angular
+.git
+.env
+coverage
+data
+fixtures/filmweb/private

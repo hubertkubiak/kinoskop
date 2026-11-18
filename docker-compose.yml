@@ -1,0 +1,17 @@
+# Local only (SPEC §12): API in a container, frontend via `pnpm nx serve web` (proxy /api → :3000).
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      CACHE_DB_PATH: /data/cache.sqlite
+    ports:
+      - '3000:3000'
+    volumes:
+      - api-cache:/data
+
+volumes:
+  api-cache:
