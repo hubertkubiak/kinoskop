@@ -8,11 +8,12 @@ import { NAV_ITEMS } from './nav';
 import { StatusBanners } from './status-banners';
 import { SiteFooter } from './site-footer';
 import { FilterBar } from '../filters/filter-bar';
+import { ThemeToggle } from './theme-toggle';
 
 @Component({
   selector: 'ks-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, StatusBanners, SiteFooter, FilterBar],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, StatusBanners, SiteFooter, FilterBar, ThemeToggle],
   templateUrl: './shell.html',
 })
 export class Shell {
