@@ -101,6 +101,12 @@ function eraFromLabel(label, start) {
   if (l.includes('ancient') || l.includes('antiquity')) return 'antiquity';
   if (l.includes('prehistor')) return 'prehistory';
   if (/^(1[5-9]|20)\d0s$/.test(l)) return eraFromYear(Number(l.slice(0, 4)));
+  const century = /^(\d{1,2})(?:st|nd|rd|th) century$/.exec(l);
+  if (century) {
+    const n = Number(century[1]);
+    if (n === 20) return null; // too broad (spans ten decade buckets)
+    return n >= 21 ? 'contemporary' : eraFromYear((n - 1) * 100 + 50);
+  }
   if (start) return eraFromYear(new Date(start).getUTCFullYear());
   return null;
 }
@@ -129,14 +135,15 @@ async function details(qids) {
   const d = new Map(qids.map((q) => [q, { genres: new Set(), countries: new Set(), directors: new Map(), cast: new Map(), eras: new Set(), locations: new Set(), awards: [] }]));
   for (let i = 0; i < qids.length; i += 60) {
     const v = values(qids.slice(i, i + 60));
-    const base = await sparql(`SELECT ?item ?pl ?en ?date ?dur ?tmdb ?tmdbtv WHERE { VALUES ?item { ${v} }
+    const base = await sparql(`SELECT ?item ?pl ?en ?mul ?date ?dur ?tmdb ?tmdbtv WHERE { VALUES ?item { ${v} }
       OPTIONAL { ?item rdfs:label ?pl FILTER(lang(?pl)='pl') } OPTIONAL { ?item rdfs:label ?en FILTER(lang(?en)='en') }
+      OPTIONAL { ?item rdfs:label ?mul FILTER(lang(?mul)='mul') }
       OPTIONAL { ?item wdt:P577 ?date } OPTIONAL { ?item p:P2047/psv:P2047 [ wikibase:quantityAmount ?dur; wikibase:quantityUnit wd:Q7727 ] }
       OPTIONAL { ?item wdt:P4947 ?tmdb } OPTIONAL { ?item wdt:P4983 ?tmdbtv } }`);
     for (const r of base) {
       const o = d.get(qid(r.item.value));
       o.title ??= r.pl?.value;
-      o.originalTitle ??= r.en?.value;
+      o.originalTitle ??= r.en?.value ?? r.mul?.value;
       const y = r.date ? new Date(r.date.value).getUTCFullYear() : undefined;
       if (y && (!o.year || y < o.year)) o.year = y;
       if (r.dur && !o.runtime) o.runtime = Math.round(Number(r.dur.value));
@@ -148,7 +155,7 @@ async function details(qids) {
       d.get(qid(r.item.value)).countries.add(r.iso.value);
     for (const [prop, key] of [['P57', 'directors'], ['P161', 'cast']]) {
       const rows = await sparql(`SELECT ?item ?p ?name ?tmdbp ?iso WHERE { VALUES ?item { ${v} } ?item wdt:${prop} ?p.
-        ?p rdfs:label ?name FILTER(lang(?name)='en') OPTIONAL { ?p wdt:P4985 ?tmdbp } OPTIONAL { ?p wdt:P27/wdt:P297 ?iso } }`);
+        ?p rdfs:label ?name FILTER(lang(?name)='en' || lang(?name)='mul') OPTIONAL { ?p wdt:P4985 ?tmdbp } OPTIONAL { ?p wdt:P27/wdt:P297 ?iso } }`);
       for (const r of rows) {
         const m = d.get(qid(r.item.value))[key];
         const pq = qid(r.p.value);
