@@ -1,0 +1,156 @@
+<div align="center">
+
+<!-- Logo: docs/brand/logo.svg (do przygotowania w fazie 6) -->
+<img src="docs/brand/logo.svg" alt="Kinoskop" width="96" />
+
+# Kinoskop
+
+**Twoje kino w liczbach.** Statystyki, mapa gustu i nagrody filmowe na podstawie Twoich ocen z Filmwebu.
+
+[![CI](https://img.shields.io/github/actions/workflow/status/OWNER/kinoskop/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/OWNER/kinoskop/actions)
+[![License: MIT](https://img.shields.io/badge/licencja-MIT-F0B23E?style=flat-square)](LICENSE)
+![Status](https://img.shields.io/badge/status-w%20budowie%20(lokalnie)-221F17?style=flat-square)
+
+<br/>
+
+<a href="https://skillicons.dev">
+  <img src="https://skillicons.dev/icons?i=angular,ts,tailwind,nodejs,sqlite,vitest,pnpm,docker,githubactions&theme=dark" alt="Technologie" />
+</a>
+
+<br/><br/>
+
+![Nx](https://img.shields.io/badge/Nx-143055?style=for-the-badge&logo=nx&logoColor=white)
+![Fastify](https://img.shields.io/badge/Fastify-000000?style=for-the-badge&logo=fastify&logoColor=white)
+![Apache ECharts](https://img.shields.io/badge/ECharts-AA344D?style=for-the-badge&logo=apacheecharts&logoColor=white)
+![ngDiagram](https://img.shields.io/badge/ngDiagram-1F2937?style=for-the-badge&logo=angular&logoColor=white)
+![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
+![Dexie](https://img.shields.io/badge/Dexie.js-IndexedDB-221F17?style=for-the-badge)
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge)
+![Render](https://img.shields.io/badge/Render-000000?style=for-the-badge&logo=render&logoColor=white)
+
+**Dane:**
+![TMDB](https://img.shields.io/badge/TMDB-01B4E4?style=flat-square&logo=themoviedatabase&logoColor=white)
+![Wikidata](https://img.shields.io/badge/Wikidata-006699?style=flat-square&logo=wikidata&logoColor=white)
+![IGDB](https://img.shields.io/badge/IGDB-9147FF?style=flat-square&logo=twitch&logoColor=white)
+![OMDb](https://img.shields.io/badge/OMDb-opcjonalnie-3A352A?style=flat-square)
+**AI (Twój klucz):**
+![Anthropic](https://img.shields.io/badge/Anthropic-191919?style=flat-square&logo=anthropic&logoColor=white)
+![OpenRouter](https://img.shields.io/badge/OpenRouter-darmowe%20modele-3A352A?style=flat-square)
+![Gemini](https://img.shields.io/badge/Gemini-8E75B2?style=flat-square&logo=googlegemini&logoColor=white)
+
+</div>
+
+---
+
+## ✨ Co potrafi
+
+| | |
+|---|---|
+| 🎞️ **Statystyki jak na Filmwebie** | liczba tytułów wg gatunku, top gatunek, rozkład ocen, osobno dla filmów, seriali i gier |
+| 🔎 **Złożone filtrowanie** | łącz dowolnie: gatunek, kraj, narodowość reżysera, epokę akcji, twórców, nagrody, zakres ocen i lat |
+| 🌍 **Świat i twórcy** | mapa krajów produkcji, narodowości reżyserów, rankingi reżyserów i aktorów |
+| 🏛️ **Epoki historyczne** | w jakich czasach dzieją się filmy, które oglądasz i które oceniasz najwyżej |
+| 🏆 **Nagrody na osi czasu** | Oscary, Cannes, Berlinale, Wenecja, BAFTA, Złote Globy, Orły, Gdynia, Emmy, The Game Awards… |
+| 🎯 **Zgodność nagród z gustem** | które nagrody najlepiej przewidują, co Ci się spodoba, plus rekomendacje z informacją, gdzie obejrzeć w Polsce |
+| 🕸️ **Mapa gustu** | interaktywny graf: gatunki → twórcy → tytuły |
+| 🔒 **Prywatnie** | bez kont; Twoje oceny zostają w przeglądarce i znikają po jej zamknięciu |
+
+<!-- Zrzuty ekranu: docs/screenshots/*.png (faza 7) -->
+<p align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Przegląd" width="49%" />
+  <img src="docs/screenshots/awards.png" alt="Nagrody" width="49%" />
+</p>
+
+## 🚀 Jak zacząć (dla użytkownika)
+
+Nie chcesz niczego importować? Kliknij **„Zobacz demo”**, żeby obejrzeć aplikację na przykładowym, fikcyjnym profilu.
+
+1. Zaloguj się na **filmweb.pl**.
+2. W Kinoskopie kliknij **„Skopiuj skrypt”**.
+3. Na karcie Filmwebu otwórz konsolę (`Ctrl+Shift+J` / `Cmd+Option+J`, w Firefoksie `Ctrl+Shift+K`), wpisz `allow pasting`, jeśli przeglądarka o to poprosi, wklej skrypt i naciśnij Enter.
+4. Przeciągnij pobrany plik `kinoskop-eksport-….json` na stronę Kinoskopu.
+
+Skrypt pobiera tylko **Twoje własne dane** (oceny, daty, listy) zapytaniami GET, w tempie zbliżonym do ręcznego przeglądania, i zapisuje plik na Twoim dysku. Regulamin Filmwebu ogranicza korzystanie z programów automatycznych, więc z importu korzystasz na własną odpowiedzialność. Jego pełny kod jest widoczny w aplikacji przed skopiowaniem. Szczegółowa instrukcja z rozwiązywaniem problemów jest w aplikacji.
+
+## 🛠️ Uruchomienie lokalne (dla dewelopera)
+
+**Wymagania:** Node.js 24 LTS, pnpm 9+.
+
+```bash
+git clone https://github.com/OWNER/kinoskop.git
+cd kinoskop
+pnpm install
+cp .env.example .env        # uzupełnij klucze (patrz niżej)
+
+pnpm nx serve api           # backend → http://localhost:3000
+pnpm nx serve web           # frontend → http://localhost:4200 (proxy /api → 3000)
+```
+
+| Polecenie | Co robi |
+|---|---|
+| `pnpm nx test <projekt>` | testy jednostkowe (Vitest) |
+| `pnpm nx e2e web-e2e` | testy e2e (Playwright) na przykładowym eksporcie z `fixtures/` |
+| `pnpm nx build import-script` | buduje skrypt konsolowy i bookmarklet |
+| `pnpm awards:refresh` | odświeża katalog nagród z Wikidata |
+| `docker compose up --build` | lokalnie: API w kontenerze + front |
+
+### Zmienne środowiskowe
+
+| Zmienna | Wymagana | Skąd wziąć |
+|---|---|---|
+| `TMDB_API_TOKEN` | ✅ | [themoviedb.org → Settings → API](https://www.themoviedb.org/settings/api) (API Read Access Token) |
+| `WIKIDATA_CONTACT` | ✅ | Twój e-mail lub URL (trafia do nagłówka User-Agent) |
+| `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` | dla gier | [dev.twitch.tv/console](https://dev.twitch.tv/console) (wymaga 2FA) |
+| `OMDB_API_KEY` | ➖ | [omdbapi.com](https://www.omdbapi.com/apikey.aspx) |
+| `WEB_ORIGIN` | ✅ | adres frontu (CORS); lokalnie `http://localhost:4200` |
+
+## 🧭 Architektura
+
+```mermaid
+flowchart LR
+  FW["filmweb.pl<br/>skrypt w konsoli"] -- plik JSON --> WEB["Angular SPA<br/>+ IndexedDB"]
+  WEB -- "ID i tytuły (bez ocen)" --> API["Fastify API<br/>+ SQLite cache"]
+  API --> WD[Wikidata]
+  API --> TMDB[TMDB]
+  API --> IGDB[IGDB]
+  API --> OMDB["OMDb (opcj.)"]
+```
+
+```
+apps/web           Angular 22: widoki, wykresy, mapa gustu
+apps/api           Fastify 5: wzbogacanie, nagrody, wyszukiwanie
+libs/shared        schematy Zod i typy wspólne dla wszystkich części
+libs/stats         czyste funkcje statystyk i filtrów
+libs/import-script skrypt konsolowy dla filmweb.pl
+```
+
+Pełna specyfikacja: [`SPEC.md`](SPEC.md).
+
+> 🤖 **Epoki przez AI** działają na kluczu użytkownika (Anthropic, OpenRouter z darmowymi modelami albo Gemini). Klucz podaje się w aplikacji, zostaje w przeglądarce i nie trafia na serwer Kinoskopu, więc po stronie serwera nie ma żadnego klucza LLM.
+
+## ☁️ Deploy (Render) — w przyszłości
+
+Obecnie aplikacja działa tylko lokalnie. Docelowo repo będzie zawierać Blueprint [`render.yaml`](render.yaml): front jako **Static Site**, API jako **Web Service**. W panelu Render wybierz *New → Blueprint*, wskaż repo i uzupełnij sekrety. Na darmowym planie API usypia po 15 minutach bez ruchu, a cache metadanych jest czyszczony przy restarcie. Aplikacja jest na to przygotowana: wybudza API w tle, a katalog nagród dostaje jako gotowy plik z cotygodniowej GitHub Action.
+
+## 🔒 Prywatność
+
+- Brak kont, analityki i ciasteczek śledzących.
+- Twoje oceny są przechowywane **wyłącznie w przeglądarce** (IndexedDB) i czyszczone po jej zamknięciu. Przycisk „Usuń moje dane” działa natychmiast.
+- Serwer otrzymuje tylko identyfikatory i tytuły do wzbogacenia; przechowuje w cache wyłącznie publiczne metadane filmów.
+- Klucz AI (jeśli go podasz) jest trzymany w pamięci karty i wysyłany wyłącznie do wybranego dostawcy.
+
+## 🙏 Źródła danych i atrybucje
+
+<!-- Oficjalne logo pobierz ze strony TMDB „About → Logos & Attribution” i zapisz jako docs/brand/tmdb-logo.svg -->
+<img src="docs/brand/tmdb-logo.svg" alt="TMDB" height="14" />&nbsp; This product uses the TMDB API but is not endorsed or certified by TMDB.
+
+- Dane o dostępności w serwisach streamingowych: **JustWatch** (przez TMDB).
+- Dane o grach: **IGDB.com**.
+- Nagrody, epoki i narodowości: **Wikidata** (CC0).
+- Oceny krytyków: **OMDb API** (opcjonalnie).
+
+> **Kinoskop jest niezależnym projektem i nie jest powiązany z Filmweb ani jego właścicielem.** Import korzysta z nieudokumentowanego interfejsu, którego Filmweb używa na własnej stronie; może on przestać działać bez ostrzeżenia.
+
+## 📄 Licencja
+
+[MIT](LICENSE)

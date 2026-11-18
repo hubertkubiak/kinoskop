@@ -1,0 +1,44 @@
+# build
+dist
+tmp
+out-tsc
+coverage
+
+# deps
+node_modules
+
+# env & secrets
+.env
+.env.*
+!.env.example
+
+# local data
+apps/api/data/
+data/
+fixtures/filmweb/private/
+
+# IDE
+/.idea
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# nx
+.nx/cache
+.nx/workspace-data
+.nx/polygraph
+.nx/self-healing
+
+# tests
+test-results
+playwright-report
+/.playwright
+
+# misc
+.DS_Store
+Thumbs.db
+*.log
+.claude/settings.local.json
+.angular
+vitest.config.*.timestamp*
+.vitest
