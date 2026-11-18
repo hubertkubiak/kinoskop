@@ -33,7 +33,7 @@ interface Chip {
         @for (chip of chips(); track chip.id) {
           <li class="ks-chip">
             {{ chip.label }}
-            <button type="button" class="rounded-full p-0.5 hover:text-ks-accent" [attr.aria-label]="'Usuń filtr ' + chip.label"
+            <button type="button" class="rounded-full min-w-6 min-h-6 grid place-items-center hover:text-ks-accent" [attr.aria-label]="'Usuń filtr ' + chip.label"
               (click)="fs.update(chip.remove)">
               <ks-icon name="close" [size]="14" />
             </button>

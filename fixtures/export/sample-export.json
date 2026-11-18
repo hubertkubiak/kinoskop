@@ -1,0 +1,279 @@
+{
+ "schemaVersion": 1,
+ "exportedAt": "2026-11-18T12:00:00.000Z",
+ "source": "filmweb",
+ "scriptVersion": "0.1.0",
+ "user": {
+  "id": 1,
+  "name": "ANON_USER"
+ },
+ "items": [
+  {
+   "filmwebId": 521206,
+   "kind": "film",
+   "list": "want2see"
+  },
+  {
+   "filmwebId": 1044,
+   "kind": "film",
+   "list": "rated",
+   "rating": 9,
+   "ratedAt": "2019-10-11T19:11:00.000Z"
+  },
+  {
+   "filmwebId": 4833,
+   "kind": "film",
+   "list": "rated",
+   "rating": 10,
+   "ratedAt": "2017-09-10T21:02:00.000Z",
+   "favorite": true
+  },
+  {
+   "filmwebId": 293878,
+   "kind": "film",
+   "list": "rated",
+   "rating": 10,
+   "ratedAt": "2020-06-08T20:13:00.000Z",
+   "favorite": true
+  },
+  {
+   "filmwebId": 32358,
+   "kind": "film",
+   "list": "rated",
+   "rating": 6,
+   "ratedAt": "2020-09-14T20:07:00.000Z"
+  },
+  {
+   "filmwebId": 852,
+   "kind": "film",
+   "list": "rated",
+   "rating": 7,
+   "ratedAt": "2024-09-02T20:37:00.000Z"
+  },
+  {
+   "filmwebId": 531,
+   "kind": "film",
+   "list": "want2see"
+  },
+  {
+   "filmwebId": 30625,
+   "kind": "film",
+   "list": "rated",
+   "rating": 5,
+   "ratedAt": "2015-05-10T21:48:00.000Z"
+  },
+  {
+   "filmwebId": 34074,
+   "kind": "film",
+   "list": "want2see"
+  },
+  {
+   "filmwebId": 4382,
+   "kind": "film",
+   "list": "rated",
+   "rating": 8,
+   "ratedAt": "2021-06-29T19:46:00.000Z"
+  },
+  {
+   "filmwebId": 763805,
+   "kind": "film",
+   "list": "rated",
+   "rating": 8,
+   "ratedAt": "2021-10-09T18:15:00.000Z"
+  },
+  {
+   "filmwebId": 519960,
+   "kind": "film",
+   "list": "rated",
+   "rating": 7,
+   "ratedAt": "2022-10-30T19:38:00.000Z"
+  },
+  {
+   "filmwebId": 547745,
+   "kind": "film",
+   "list": "rated",
+   "rating": 8,
+   "ratedAt": "2022-02-15T19:59:00.000Z"
+  },
+  {
+   "filmwebId": 810167,
+   "kind": "film",
+   "list": "rated",
+   "rating": 8,
+   "ratedAt": "2012-05-24T22:24:00.000Z"
+  },
+  {
+   "filmwebId": 30720,
+   "kind": "film",
+   "list": "rated",
+   "rating": 6,
+   "ratedAt": "2023-03-18T20:34:00.000Z"
+  },
+  {
+   "filmwebId": 38666,
+   "kind": "film",
+   "list": "rated",
+   "rating": 10,
+   "ratedAt": "2015-12-09T22:53:00.000Z"
+  },
+  {
+   "filmwebId": 437710,
+   "kind": "film",
+   "list": "rated",
+   "rating": 5,
+   "ratedAt": "2017-07-26T20:23:00.000Z"
+  },
+  {
+   "filmwebId": 401089,
+   "kind": "film",
+   "list": "rated",
+   "rating": 7,
+   "ratedAt": "2020-04-13T22:10:00.000Z"
+  },
+  {
+   "filmwebId": 480762,
+   "kind": "film",
+   "list": "rated",
+   "rating": 9,
+   "ratedAt": "2026-10-25T19:18:00.000Z"
+  },
+  {
+   "filmwebId": 867,
+   "kind": "film",
+   "list": "rated",
+   "rating": 8,
+   "ratedAt": "2026-09-05T21:38:00.000Z"
+  },
+  {
+   "filmwebId": 837,
+   "kind": "film",
+   "list": "rated",
+   "rating": 10,
+   "ratedAt": "2017-02-05T20:11:00.000Z"
+  },
+  {
+   "filmwebId": 30689,
+   "kind": "film",
+   "list": "rated",
+   "rating": 4,
+   "ratedAt": "2023-03-13T19:33:00.000Z"
+  },
+  {
+   "filmwebId": 31647,
+   "kind": "film",
+   "list": "rated",
+   "rating": 10,
+   "ratedAt": "2021-01-08T22:54:00.000Z",
+   "favorite": true
+  },
+  {
+   "filmwebId": 343217,
+   "kind": "film",
+   "list": "rated",
+   "rating": 6,
+   "ratedAt": "2023-12-02T18:11:00.000Z"
+  },
+  {
+   "filmwebId": 804059,
+   "kind": "film",
+   "list": "rated",
+   "rating": 8,
+   "ratedAt": "2018-03-11T21:19:00.000Z"
+  },
+  {
+   "filmwebId": 34393,
+   "kind": "film",
+   "list": "rated",
+   "rating": 8,
+   "ratedAt": "2021-05-09T20:23:00.000Z"
+  },
+  {
+   "filmwebId": 482376,
+   "kind": "film",
+   "list": "rated",
+   "rating": 6,
+   "ratedAt": "2025-11-04T18:02:00.000Z"
+  },
+  {
+   "filmwebId": 915,
+   "kind": "film",
+   "list": "rated",
+   "rating": 7,
+   "ratedAt": "2023-12-18T18:54:00.000Z"
+  },
+  {
+   "filmwebId": 38233,
+   "kind": "film",
+   "list": "rated",
+   "rating": 7,
+   "ratedAt": "2015-05-31T21:02:00.000Z"
+  },
+  {
+   "filmwebId": 754536,
+   "kind": "film",
+   "list": "want2see"
+  },
+  {
+   "filmwebId": 305388,
+   "kind": "film",
+   "list": "rated",
+   "rating": 6,
+   "ratedAt": "2025-04-19T19:30:00.000Z"
+  },
+  {
+   "filmwebId": 31333,
+   "kind": "film",
+   "list": "want2see"
+  },
+  {
+   "filmwebId": 10682,
+   "kind": "film",
+   "list": "rated",
+   "rating": 5,
+   "ratedAt": "2023-04-20T18:15:00.000Z"
+  },
+  {
+   "filmwebId": 31864,
+   "kind": "film",
+   "list": "want2see"
+  },
+  {
+   "filmwebId": 433939,
+   "kind": "film",
+   "list": "rated",
+   "rating": 6,
+   "ratedAt": "2013-05-14T22:58:00.000Z"
+  },
+  {
+   "filmwebId": 609757,
+   "kind": "film",
+   "list": "rated",
+   "rating": 7,
+   "ratedAt": "2016-07-25T20:01:00.000Z"
+  },
+  {
+   "filmwebId": 11726,
+   "kind": "film",
+   "list": "want2see"
+  },
+  {
+   "filmwebId": 1213,
+   "kind": "film",
+   "list": "want2see"
+  },
+  {
+   "filmwebId": 164052,
+   "kind": "film",
+   "list": "rated",
+   "rating": 7,
+   "ratedAt": "2018-06-29T20:41:00.000Z"
+  },
+  {
+   "filmwebId": 620541,
+   "kind": "film",
+   "list": "rated",
+   "rating": 9,
+   "ratedAt": "2025-05-28T19:40:00.000Z"
+  }
+ ]
+}
