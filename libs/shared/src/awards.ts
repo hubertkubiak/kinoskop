@@ -22,6 +22,8 @@ export const AwardWorkSchema = z.object({
   tmdbId: z.number().int().optional(),
   imdbId: z.string().optional(),
   igdbId: z.number().int().optional(),
+  /** Polish genre names (from Wikidata P136), used to rank recommendations. */
+  genres: z.array(z.string()).optional(),
 });
 export type AwardWork = z.infer<typeof AwardWorkSchema>;
 

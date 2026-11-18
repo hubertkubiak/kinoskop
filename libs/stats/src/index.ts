@@ -9,3 +9,4 @@ export * from './world';
 export * from './time';
 export * from './people';
 export * from './taste';
+export * from './awards';

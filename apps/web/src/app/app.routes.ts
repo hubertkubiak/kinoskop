@@ -58,6 +58,12 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./features/creators/creators-page').then((m) => m.CreatorsPage),
       },
       {
+        path: 'nagrody',
+        title: 'Nagrody – Kinoskop',
+        canActivate: [requireData],
+        loadComponent: () => import('./features/awards/awards-page').then((m) => m.AwardsPage),
+      },
+      {
         path: 'chce-zobaczyc',
         title: 'Chcę zobaczyć – Kinoskop',
         canActivate: [requireData],

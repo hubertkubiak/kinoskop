@@ -44,4 +44,5 @@ export const Q = {
   videoGame: 'Q7889',
   /** unit "minute", for P2047 duration. */
   minute: 'Q7727',
+  human: 'Q5',
 } as const;

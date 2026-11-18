@@ -34,12 +34,14 @@ export async function lookupByFilmwebIds(wd: WikidataClient, ids: number[]): Pro
   const out = new Map<number, WikidataTitle>();
   for (const batch of chunks([...new Set(ids)], SPARQL_BATCH)) {
     const values = batch.map((id) => sparqlString(String(id))).join(' ');
-    const base = await wd.query(`SELECT ?item ?fw ?tmdb ?tmdbtv ?imdb ?igdb ?label ?date ?dur WHERE {
+    // Default labels may live in the multilingual "mul" language instead of "pl"/"en".
+    const base = await wd.query(`SELECT ?item ?fw ?tmdb ?tmdbtv ?imdb ?igdb ?label ?mul ?date ?dur WHERE {
       VALUES ?fw { ${values} } ?item wdt:${P.filmwebFilm} ?fw .
       OPTIONAL { ?item wdt:${P.tmdbMovie} ?tmdb } OPTIONAL { ?item wdt:${P.tmdbTv} ?tmdbtv }
       OPTIONAL { ?item wdt:${P.imdb} ?imdb }
       OPTIONAL { ?item p:${P.igdbSlug}/pq:${P.igdbNumeric} ?igdb }
       OPTIONAL { ?item rdfs:label ?label FILTER(lang(?label) = "pl") }
+      OPTIONAL { ?item rdfs:label ?mul FILTER(lang(?mul) = "mul") }
       OPTIONAL { ?item wdt:${P.publicationDate} ?date }
       OPTIONAL { ?item p:${P.duration}/psv:${P.duration} [ wikibase:quantityAmount ?dur; wikibase:quantityUnit wd:${Q.minute} ] }
     }`);
@@ -52,7 +54,7 @@ export async function lookupByFilmwebIds(wd: WikidataClient, ids: number[]): Pro
       t.tmdbTvId ??= num(b['tmdbtv']?.value);
       t.imdbId ??= b['imdb']?.value;
       t.igdbId ??= num(b['igdb']?.value);
-      t.label ??= b['label']?.value;
+      t.label ??= b['label']?.value ?? b['mul']?.value;
       const y = b['date'] ? new Date(b['date'].value).getUTCFullYear() : undefined;
       if (y && (!t.year || y < t.year)) t.year = y;
       if (b['dur'] && !t.runtimeMinutes) t.runtimeMinutes = Math.round(Number(b['dur'].value));
@@ -73,7 +75,7 @@ async function addDetails(wd: WikidataClient, titles: Map<number, WikidataTitle>
       const t = byQid.get(qidOf(b['item']?.value) ?? '');
       if (t && b['iso'] && !t.countries.includes(b['iso'].value)) t.countries.push(b['iso'].value);
     }
-    for (const b of await run(`?item wdt:${P.director} ?d . ?d rdfs:label ?name FILTER(lang(?name) = "en")
+    for (const b of await run(`?item wdt:${P.director} ?d . ?d rdfs:label ?name FILTER(lang(?name) = "en" || lang(?name) = "mul")
         OPTIONAL { ?d wdt:${P.tmdbPerson} ?tmdbp } OPTIONAL { ?d wdt:${P.citizenship}/wdt:${P.iso2} ?iso }`)) {
       const t = byQid.get(qidOf(b['item']?.value) ?? '');
       const dq = qidOf(b['d']?.value);

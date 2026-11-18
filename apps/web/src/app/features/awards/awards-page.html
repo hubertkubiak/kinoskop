@@ -1,0 +1,77 @@
+<h1 class="font-display text-4xl uppercase mb-4">Nagrody</h1>
+
+<div class="flex flex-wrap items-center gap-3 mb-5">
+  <div role="tablist" aria-label="Typ" class="flex gap-2">
+    @for (k of kinds; track k) {
+      <button type="button" role="tab" class="ks-chip pr-3" [attr.aria-selected]="kind() === k"
+        [class.!border-ks-accent]="kind() === k" (click)="kind.set(k)">{{ kindLabels[k].many }}</button>
+    }
+  </div>
+  <label class="text-sm flex items-center gap-2">
+    <input type="checkbox" [checked]="nominations()" (change)="nominations.set(!nominations())" />
+    Pokaż nominacje <span class="text-ks-muted">(dane mniej kompletne)</span>
+  </label>
+</div>
+
+@if (labels.error()) {
+  <p class="ks-card p-4 text-sm" role="alert">Katalog nagród jest niedostępny. Uruchom API albo <code>pnpm awards:refresh</code>.</p>
+} @else if (!catalog()) {
+  <p class="text-sm text-ks-muted" role="status">Ładuję katalog nagród…</p>
+} @else {
+  <ks-chart-card heading="Nagrody na osi czasu" subtitle="Wiersz = nagroda, punkt = laureat danego roku. Przybliżaj kółkiem myszy lub suwakiem."
+    [option]="timelineOption()" [table]="timelineTable()" height="460px" [empty]="timeline().length === 0" />
+
+  <div class="grid gap-4 xl:grid-cols-2 mt-4">
+    <ks-chart-card heading="Zgodność nagród z Twoim gustem"
+      subtitle="Delta = średnia Twoich ocen laureatów ściągnięta do Twojej średniej (k = 5) minus Twoja średnia"
+      [option]="affinityOption()" [table]="affinityTable()" height="360px" [empty]="!affinity().some(r => r.delta !== undefined)"
+      emptyText="Za mało ocenionych laureatów (potrzeba min. 3 na nagrodę).">
+      <table class="ks-table mt-3">
+        <thead><tr><th scope="col">Nagroda</th><th scope="col">Pokrycie</th><th scope="col">n</th><th scope="col">Średnia</th><th scope="col">Delta</th><th scope="col">≥ 8</th></tr></thead>
+        <tbody>
+          @for (r of affinity(); track r.award.key) {
+            <tr>
+              <td>{{ r.award.shortPl }}</td>
+              <td class="tabular">{{ r.watched }}/{{ r.winners }}</td>
+              <td class="tabular">{{ r.n }}</td>
+              <td class="tabular">{{ avg(r.avg) }}</td>
+              <td class="tabular" [class.text-ks-positive]="(r.delta ?? 0) > 0" [class.text-ks-negative]="(r.delta ?? 0) < 0">
+                {{ r.insufficient ? 'za mało danych' : (r.delta! > 0 ? '+' : '') + r.delta }}
+              </td>
+              <td class="tabular">{{ pct(r.hitRate) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </ks-chart-card>
+
+    <section class="ks-card p-4" aria-labelledby="ks-recs">
+      <h2 id="ks-recs" class="font-display text-xl uppercase mb-1">Rekomendacje</h2>
+      <p class="text-xs text-ks-muted mb-3">Nieobejrzani laureaci 3 najbardziej zgodnych nagród, uporządkowani wg zgodności i Twoich ulubionych gatunków.</p>
+      <ol class="space-y-2 max-h-[520px] overflow-y-auto">
+        @for (r of recs(); track r.entry.work.wikidataId) {
+          @let d = r.inWant2see?.enrichment ?? details(r.entry.work.filmwebId, r.award.kind);
+          <li class="flex gap-3 items-start">
+            <ks-poster class="w-11 h-16" [src]="d?.posterUrl" [title]="r.entry.work.titlePl ?? r.entry.work.title" />
+            <div class="flex-1 min-w-0 text-sm">
+              <p class="font-medium">
+                {{ r.entry.work.titlePl ?? r.entry.work.title }}
+                @if (r.inWant2see) { <span class="ks-chip !py-0 !px-2 text-[11px] ml-1">na liście „chcę zobaczyć”</span> }
+              </p>
+              <p class="text-xs text-ks-muted">{{ r.award.shortPl }} {{ r.entry.year }} · {{ r.entry.work.genres?.join(', ') }}</p>
+              @if (d?.providersPL; as pp) {
+                <p class="text-xs mt-1">
+                  @if (pp.flatrate.length) { Abonament: {{ names(pp.flatrate) }} }
+                  @if (pp.rent.length) { · Wypożyczenie: {{ names(pp.rent) }} }
+                </p>
+              }
+            </div>
+          </li>
+        } @empty {
+          <li class="text-sm text-ks-muted">Brak rekomendacji – potrzeba nagród z dodatnią zgodnością (min. 3 ocenionych laureatów).</li>
+        }
+      </ol>
+      <p class="text-xs text-ks-muted mt-3">Gdzie obejrzeć: dane JustWatch (przez TMDB). Laureaci: Wikidata.</p>
+    </section>
+  </div>
+}

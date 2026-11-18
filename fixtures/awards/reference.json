@@ -1,0 +1,15 @@
+{
+  "_comment": "Reference winners for the Phase 4 completeness test (SPEC §11). Oscar: ceremonies 2006–2025. Palme d'Or: festivals 2005–2025 (2020 cancelled). Titles as English Wikidata labels (L'Enfant = \"The Child\"); matched loosely (normalised, substring).",
+  "oscar-picture": [
+    "Crash", "The Departed", "No Country for Old Men", "Slumdog Millionaire", "The Hurt Locker",
+    "The King's Speech", "The Artist", "Argo", "12 Years a Slave", "Birdman",
+    "Spotlight", "Moonlight", "The Shape of Water", "Green Book", "Parasite",
+    "Nomadland", "CODA", "Everything Everywhere All at Once", "Oppenheimer", "Anora"
+  ],
+  "palme-dor": [
+    "The Child", "The Wind That Shakes the Barley", "4 Months, 3 Weeks and 2 Days", "The Class", "The White Ribbon",
+    "Uncle Boonmee Who Can Recall His Past Lives", "The Tree of Life", "Amour", "Blue Is the Warmest Colour", "Winter Sleep",
+    "Dheepan", "I, Daniel Blake", "The Square", "Shoplifters", "Parasite",
+    "Titane", "Triangle of Sadness", "Anatomy of a Fall", "Anora", "It Was Just an Accident"
+  ]
+}
