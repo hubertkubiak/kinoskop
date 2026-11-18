@@ -1,0 +1,132 @@
+<div class="min-h-screen flex flex-col">
+  <main id="main" class="flex-1 max-w-5xl w-full mx-auto px-4 py-10">
+    <header class="mb-10 flex flex-col md:flex-row md:items-end gap-6 justify-between">
+      <div>
+        <p class="flex items-center gap-2 mb-2">
+          <img src="favicon.svg" alt="" width="36" height="36" />
+          <span class="font-display text-4xl uppercase tracking-wide">{{ brand.name }}</span>
+        </p>
+        <h1 class="font-display text-5xl md:text-6xl uppercase text-ks-accent leading-none">{{ brand.tagline }}</h1>
+        <p class="mt-3 text-ks-muted max-w-xl">{{ s.lead }}</p>
+      </div>
+      <div class="flex flex-col items-start gap-1">
+        <button type="button" class="ks-btn ks-btn-primary text-lg" data-testid="demo" [disabled]="importer.busy()" (click)="importer.loadDemo()">
+          <ks-icon name="film" /> {{ s.demo }}
+        </button>
+        <span class="text-xs text-ks-muted">{{ s.demoHint }}</span>
+        @if (store.hasData()) {
+          <a routerLink="/przeglad" class="text-sm underline mt-2">Wróć do statystyk</a>
+        }
+      </div>
+    </header>
+
+    @if (importer.busy()) {
+      <ks-film-leader label="Wczytuję dane…" class="mb-6" />
+    }
+    @if (importer.error(); as err) {
+      <p role="alert" class="ks-card border-ks-negative p-4 mb-6">
+        <strong>Nie udało się zaimportować pliku.</strong> {{ err }}
+      </p>
+    }
+
+    @if (!importEnabled) {
+      <p class="ks-card p-6">{{ s.importSoon }}</p>
+    } @else {
+      <h2 class="font-display text-3xl uppercase mb-4">{{ s.title }}</h2>
+      @if (isMobile) {
+        <p class="ks-card p-4 mb-4 text-sm">{{ s.mobile }}</p>
+      }
+
+      <ol class="grid gap-4 md:grid-cols-3 mb-8">
+        <li class="ks-card p-5">
+          <p class="font-display text-4xl text-ks-accent">1</p>
+          <h3 class="font-semibold mb-1">Zaloguj się na filmweb.pl</h3>
+          <p class="text-sm text-ks-muted">W tej samej przeglądarce. Otwórz dowolną stronę Filmwebu.</p>
+          <img src="assets/import/step-1.svg" alt="" class="mt-3 w-full rounded-ks-sm border border-ks-border" />
+        </li>
+        <li class="ks-card p-5">
+          <p class="font-display text-4xl text-ks-accent">2</p>
+          <h3 class="font-semibold mb-1">Wklej skrypt w konsolę</h3>
+          <div role="tablist" aria-label="Przeglądarka" class="flex flex-wrap gap-1 my-2">
+            @for (b of browsers; track b[0]) {
+              <button type="button" role="tab" class="ks-chip pr-3 text-xs" [attr.aria-selected]="browser() === b[0]"
+                [class.!border-ks-accent]="browser() === b[0]" (click)="browser.set(b[0])">{{ b[1].label }}</button>
+            }
+          </div>
+          @for (b of browsers; track b[0]) {
+            @if (browser() === b[0]) {
+              <div role="tabpanel" class="text-sm text-ks-muted space-y-1">
+                <p><strong class="text-ks-text">Otwórz konsolę:</strong> <kbd>{{ b[1].open }}</kbd></p>
+                <p>{{ b[1].paste }}</p>
+                <p>Wklej (Ctrl+V / Cmd+V) i naciśnij <kbd>Enter</kbd>. Zobaczysz postęp, np. „Kinoskop: 420 tytułów…”. Nie zamykaj karty.</p>
+              </div>
+            }
+          }
+        </li>
+        <li class="ks-card p-5">
+          <p class="font-display text-4xl text-ks-accent">3</p>
+          <h3 class="font-semibold mb-1">Przeciągnij plik tutaj</h3>
+          <p class="text-sm text-ks-muted">Przeglądarka pobierze plik <code>kinoskop-eksport-….json</code>. Wróć do Kinoskopu i upuść go poniżej.</p>
+          <img src="assets/import/step-3.svg" alt="" class="mt-3 w-full rounded-ks-sm border border-ks-border" />
+        </li>
+      </ol>
+
+      <section class="ks-card p-5 mb-6" aria-labelledby="ks-script-h">
+        <h3 id="ks-script-h" class="font-semibold mb-3">Skrypt importu</h3>
+        <label class="flex gap-3 items-start text-sm mb-4">
+          <input type="checkbox" class="mt-1" [checked]="accepted()" (change)="accepted.set(!accepted())" data-testid="legal" />
+          <span>{{ s.legal }}</span>
+        </label>
+        <div class="flex flex-wrap gap-3 items-center">
+          <button type="button" class="ks-btn ks-btn-primary" [disabled]="!accepted() || !script()" (click)="copy()">
+            <ks-icon name="copy" /> {{ s.copy }}
+          </button>
+          @if (copied()) { <span class="text-sm text-ks-positive" role="status">{{ s.copied }}</span> }
+          @if (!script()) { <span class="text-sm text-ks-muted">Skrypt niedostępny – uruchom <code>pnpm nx build import-script</code>.</span> }
+        </div>
+        <button type="button" class="text-sm underline mt-4 flex items-center gap-1" [attr.aria-expanded]="showCode()" (click)="showCode.set(!showCode())">
+          <ks-icon name="chevron" [size]="14" /> {{ s.showCode }}
+        </button>
+        @if (showCode() && script()) {
+          <pre class="mt-3 max-h-96 overflow-auto text-xs bg-ks-bg p-3 rounded-ks-sm border border-ks-border"><code>{{ script() }}</code></pre>
+        }
+        @if (bookmarklet() && accepted()) {
+          <p class="text-sm text-ks-muted mt-4">{{ s.bookmarklet }}</p>
+          <a class="ks-btn mt-2 cursor-grab" [href]="bookmarklet()" (click)="$event.preventDefault()">Kinoskop: import</a>
+        }
+        <aside class="mt-5 p-4 rounded-ks-sm bg-ks-surface-2 text-sm flex gap-3">
+          <ks-icon name="shield" class="text-ks-accent mt-0.5" />
+          <div><strong>{{ s.safetyTitle }}</strong> {{ s.safety }}</div>
+        </aside>
+      </section>
+
+      <section
+        class="rounded-ks border-2 border-dashed p-10 text-center mb-8 transition-colors"
+        [class.border-ks-accent]="dragOver()"
+        [class.border-ks-border]="!dragOver()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="dragOver.set(false)"
+        (drop)="onDrop($event)"
+        aria-label="Strefa importu pliku"
+      >
+        <ks-icon name="upload" [size]="32" class="text-ks-accent mb-2" />
+        <p class="mb-2">{{ s.drop }}</p>
+        <label class="ks-btn cursor-pointer">
+          {{ s.pick }}
+          <input #picker type="file" accept="application/json,.json" class="sr-only" data-testid="file-input" (change)="onPick(picker)" />
+        </label>
+      </section>
+
+      <section aria-labelledby="ks-problems-h">
+        <h3 id="ks-problems-h" class="font-display text-2xl uppercase mb-3">Problemy?</h3>
+        @for (p of s.problems; track p[0]) {
+          <details class="ks-card p-4 mb-2">
+            <summary class="cursor-pointer font-medium">{{ p[0] }}</summary>
+            <p class="text-sm text-ks-muted mt-2">{{ p[1] }}</p>
+          </details>
+        }
+      </section>
+    }
+  </main>
+  <ks-site-footer />
+</div>

@@ -1,0 +1,92 @@
+<a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 ks-btn z-50">Przejdź do treści</a>
+
+<div class="min-h-screen md:grid md:grid-cols-[220px_1fr]">
+  <!-- Desktop sidebar -->
+  <aside class="hidden md:flex flex-col border-r border-ks-border bg-ks-surface sticky top-0 h-screen">
+    <a routerLink="/przeglad" queryParamsHandling="preserve" class="flex items-center gap-2 px-5 py-5">
+      <img src="favicon.svg" alt="" width="28" height="28" />
+      <span class="font-display text-2xl tracking-wide uppercase">{{ brand.name }}</span>
+    </a>
+    <nav aria-label="Główna nawigacja" class="flex-1 overflow-y-auto px-2">
+      <ul class="space-y-0.5">
+        @for (item of nav; track item.path) {
+          <li>
+            <a
+              [routerLink]="item.path"
+              queryParamsHandling="preserve"
+              routerLinkActive="bg-ks-surface-2 text-ks-accent"
+              ariaCurrentWhenActive="page"
+              class="flex items-center gap-3 rounded-ks-sm px-3 py-2 text-sm hover:bg-ks-surface-2"
+            >
+              <ks-icon [name]="item.icon" />
+              <span class="flex-1">{{ item.label }}</span>
+              @if (item.path === '/weryfikacja' && toVerify() > 0) {
+                <span class="tabular text-xs rounded-full bg-ks-surface-2 border border-ks-border px-1.5"
+                  [attr.aria-label]="toVerify() + ' do sprawdzenia'">{{ toVerify() }}</span>
+              }
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+    <div class="px-4 py-4 text-xs text-ks-muted space-y-1 border-t border-ks-border">
+      <a routerLink="/o-aplikacji" class="block hover:text-ks-text">O aplikacji</a>
+      <a routerLink="/prywatnosc" class="block hover:text-ks-text">Prywatność</a>
+    </div>
+  </aside>
+
+  <div class="flex flex-col min-w-0">
+    <header class="sticky top-0 z-20 bg-ks-bg/95 backdrop-blur border-b border-ks-border">
+      <div class="flex items-center gap-3 px-4 py-3">
+        <span class="md:hidden font-display text-xl uppercase">{{ brand.name }}</span>
+        <ks-filter-bar class="flex-1 min-w-0" />
+        <button type="button" class="ks-btn text-sm" (click)="deleteData()">
+          <ks-icon name="trash" [size]="16" />
+          <span class="hidden sm:inline">Usuń moje dane</span>
+          <span class="sm:hidden sr-only">Usuń moje dane</span>
+        </button>
+      </div>
+      <ks-status-banners />
+    </header>
+
+    <main id="main" class="flex-1 px-4 md:px-8 py-6 pb-24 md:pb-8 max-w-[1400px] w-full">
+      <router-outlet />
+    </main>
+
+    <ks-site-footer />
+  </div>
+</div>
+
+<!-- Mobile bottom navigation: 4 primary entries + "Więcej" -->
+<nav aria-label="Nawigacja" class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-ks-surface border-t border-ks-border">
+  @if (moreOpen()) {
+    <ul class="grid grid-cols-2 gap-1 p-2 border-b border-ks-border">
+      @for (item of moreNav; track item.path) {
+        <li>
+          <a [routerLink]="item.path" queryParamsHandling="preserve" (click)="moreOpen.set(false)"
+            class="flex items-center gap-2 px-3 py-2 rounded-ks-sm hover:bg-ks-surface-2 text-sm">
+            <ks-icon [name]="item.icon" [size]="16" /> {{ item.label }}
+          </a>
+        </li>
+      }
+    </ul>
+  }
+  <ul class="grid grid-cols-5">
+    @for (item of primaryNav; track item.path) {
+      <li>
+        <a [routerLink]="item.path" queryParamsHandling="preserve" routerLinkActive="text-ks-accent"
+          ariaCurrentWhenActive="page" class="flex flex-col items-center gap-0.5 py-2 text-[11px]">
+          <ks-icon [name]="item.icon" />
+          {{ item.label }}
+        </a>
+      </li>
+    }
+    <li>
+      <button type="button" class="w-full flex flex-col items-center gap-0.5 py-2 text-[11px]"
+        [attr.aria-expanded]="moreOpen()" (click)="moreOpen.set(!moreOpen())">
+        <ks-icon name="more" />
+        Więcej
+      </button>
+    </li>
+  </ul>
+</nav>

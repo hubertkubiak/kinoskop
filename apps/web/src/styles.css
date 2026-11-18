@@ -1,1 +1,223 @@
-/* You can add global styles to this file, and also import other style files */
+/* Fonts are self-hosted via Fontsource (no Google Fonts requests, GDPR). */
+@import '@fontsource/inter/400';
+@import '@fontsource/inter/500';
+@import '@fontsource/inter/600';
+@import '@fontsource/big-shoulders-display/700';
+@import '@fontsource/big-shoulders-display/800';
+@import 'tailwindcss';
+
+/* ── Design tokens (SPEC §9.3). Components use only these, never raw colours. ── */
+:root {
+  color-scheme: dark;
+  --ks-bg: #0f0e0c;
+  --ks-surface: #18160f;
+  --ks-surface-2: #221f17;
+  --ks-border: #3a352a;
+  --ks-text: #f3eee3;
+  --ks-text-muted: #a39b8a;
+  --ks-accent: #f0b23e;
+  --ks-accent-strong: #ffcb66;
+  --ks-accent-ink: #1a1306;
+  --ks-positive: #5fc9a8;
+  --ks-negative: #e2685a;
+  --ks-neutral: #8a8273;
+
+  /* Sequential rating scale 1 → 10 (surface-2 → muted bronze → accent-strong). */
+  --ks-seq-1: #2b261b;
+  --ks-seq-2: #4a3a20;
+  --ks-seq-3: #7a5a2a;
+  --ks-seq-4: #b9842f;
+  --ks-seq-5: #ffcb66;
+
+  /* Categorical chart palette: ≥ 3:1 against --ks-bg, distinguishable with common CVD. */
+  --ks-cat-1: #f0b23e;
+  --ks-cat-2: #5fc9a8;
+  --ks-cat-3: #6ca8f0;
+  --ks-cat-4: #e2685a;
+  --ks-cat-5: #b591e8;
+  --ks-cat-6: #a8c75a;
+  --ks-cat-7: #e889b5;
+  --ks-cat-8: #d9c6a0;
+
+  --ks-radius: 10px;
+  --ks-radius-sm: 6px;
+  --ks-space-1: 4px;
+  --ks-space-2: 8px;
+  --ks-space-3: 12px;
+  --ks-space-4: 16px;
+  --ks-space-6: 24px;
+  --ks-space-8: 32px;
+  --ks-font-display: 'Big Shoulders Display', 'Impact', sans-serif;
+  --ks-font-body: 'Inter', system-ui, sans-serif;
+  --ks-motion: 160ms;
+  --ks-grain-opacity: 0.04;
+}
+
+/* "Sala przy zapalonym świetle" – optional light theme (SPEC §9.3). */
+:root[data-theme='light'] {
+  color-scheme: light;
+  --ks-bg: #f6f1e6;
+  --ks-surface: #fffaf0;
+  --ks-surface-2: #efe7d6;
+  --ks-border: #d6cab2;
+  --ks-text: #1d1a14;
+  --ks-text-muted: #5c5444;
+  --ks-accent: #9a6400;
+  --ks-accent-strong: #7a4e00;
+  --ks-accent-ink: #fffaf0;
+  --ks-positive: #1e7a5e;
+  --ks-negative: #b23a2c;
+  --ks-neutral: #7d7464;
+  --ks-seq-1: #efe7d6;
+  --ks-seq-2: #e3cfa3;
+  --ks-seq-3: #c99a4a;
+  --ks-seq-4: #9a6400;
+  --ks-seq-5: #5c3a00;
+  --ks-cat-1: #9a6400;
+  --ks-cat-2: #1e7a5e;
+  --ks-cat-3: #2f64b0;
+  --ks-cat-4: #b23a2c;
+  --ks-cat-5: #6f4bb0;
+  --ks-cat-6: #5a7a1e;
+  --ks-cat-7: #a8406f;
+  --ks-cat-8: #6b5a35;
+  --ks-grain-opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce), (prefers-contrast: more) {
+  :root {
+    --ks-motion: 0ms;
+    --ks-grain-opacity: 0;
+  }
+}
+
+/* Tailwind theme bound to the tokens: bg-ks-surface, text-ks-muted, border-ks-border … */
+@theme inline {
+  --color-ks-bg: var(--ks-bg);
+  --color-ks-surface: var(--ks-surface);
+  --color-ks-surface-2: var(--ks-surface-2);
+  --color-ks-border: var(--ks-border);
+  --color-ks-text: var(--ks-text);
+  --color-ks-muted: var(--ks-text-muted);
+  --color-ks-accent: var(--ks-accent);
+  --color-ks-accent-strong: var(--ks-accent-strong);
+  --color-ks-accent-ink: var(--ks-accent-ink);
+  --color-ks-positive: var(--ks-positive);
+  --color-ks-negative: var(--ks-negative);
+  --font-display: var(--ks-font-display);
+  --font-sans: var(--ks-font-body);
+  --radius-ks: var(--ks-radius);
+  --radius-ks-sm: var(--ks-radius-sm);
+}
+
+html,
+body {
+  background: var(--ks-bg);
+  color: var(--ks-text);
+  font-family: var(--ks-font-body);
+  min-height: 100%;
+}
+
+/* Film grain (SVG noise), disabled for reduced motion / high contrast. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: var(--ks-grain-opacity);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+:focus-visible {
+  outline: 2px solid var(--ks-accent-strong);
+  outline-offset: 2px;
+}
+
+.font-display {
+  font-family: var(--ks-font-display);
+  letter-spacing: 0.02em;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.ks-card {
+  background: var(--ks-surface);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius);
+}
+
+.ks-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ks-space-2);
+  padding: 8px 14px;
+  border-radius: var(--ks-radius-sm);
+  border: 1px solid var(--ks-border);
+  background: var(--ks-surface-2);
+  color: var(--ks-text);
+  font-weight: 500;
+  transition: background var(--ks-motion), border-color var(--ks-motion);
+}
+.ks-btn:hover:not(:disabled) {
+  border-color: var(--ks-accent);
+}
+.ks-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ks-btn-primary {
+  background: var(--ks-accent);
+  border-color: var(--ks-accent);
+  color: var(--ks-accent-ink);
+}
+.ks-btn-primary:hover:not(:disabled) {
+  background: var(--ks-accent-strong);
+}
+
+.ks-input {
+  background: var(--ks-surface-2);
+  border: 1px solid var(--ks-border);
+  border-radius: var(--ks-radius-sm);
+  color: var(--ks-text);
+  padding: 6px 10px;
+}
+
+.ks-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ks-border);
+  background: var(--ks-surface-2);
+  font-size: 0.8125rem;
+}
+
+.ks-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+}
+.ks-table th,
+.ks-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--ks-border);
+}
+.ks-table th {
+  color: var(--ks-text-muted);
+  font-weight: 500;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

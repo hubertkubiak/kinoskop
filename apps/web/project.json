@@ -4,11 +4,15 @@
   "projectType": "application",
   "prefix": "ks",
   "sourceRoot": "apps/web/src",
-  "tags": [],
+  "tags": [
+    "scope:web"
+  ],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "defaultConfiguration": "production",
       "options": {
         "outputPath": "dist/apps/web",
@@ -18,17 +22,33 @@
           {
             "glob": "**/*",
             "input": "apps/web/public"
+          },
+          {
+            "glob": "*.{js,txt}",
+            "input": "dist/libs/import-script",
+            "output": "import"
+          },
+          {
+            "glob": "awards.json",
+            "input": "apps/api/src/assets",
+            "output": "data"
           }
         ],
-        "styles": ["apps/web/src/styles.css"]
+        "styles": [
+          "apps/web/src/styles.css"
+        ],
+        "define": {
+          "KS_API_BASE_URL": "\"\"",
+          "KS_PUBLIC_IMPORT_ENABLED": "true"
+        }
       },
       "configurations": {
         "production": {
           "budgets": [
             {
               "type": "initial",
-              "maximumWarning": "500kb",
-              "maximumError": "1mb"
+              "maximumWarning": "1.2mb",
+              "maximumError": "1.6mb"
             },
             {
               "type": "anyComponentStyle",
@@ -36,14 +56,27 @@
               "maximumError": "8kb"
             }
           ],
-          "outputHashing": "all"
+          "outputHashing": "all",
+          "define": {
+            "KS_API_BASE_URL": "\"\"",
+            "KS_PUBLIC_IMPORT_ENABLED": "true"
+          }
         },
         "development": {
           "optimization": false,
           "extractLicenses": false,
           "sourceMap": true
         }
-      }
+      },
+      "dependsOn": [
+        "^build",
+        {
+          "projects": [
+            "import-script"
+          ],
+          "target": "build"
+        }
+      ]
     },
     "serve": {
       "continuous": true,
@@ -53,7 +86,8 @@
       "executor": "@angular/build:dev-server",
       "defaultConfiguration": "development",
       "options": {
-        "port": 4200
+        "port": 4200,
+        "proxyConfig": "apps/web/proxy.conf.json"
       },
       "configurations": {
         "production": {
@@ -62,14 +96,24 @@
         "development": {
           "buildTarget": "web:build:development"
         }
-      }
+      },
+      "dependsOn": [
+        {
+          "projects": [
+            "import-script"
+          ],
+          "target": "build"
+        }
+      ]
     },
     "serve-static": {
       "continuous": true,
       "readyWhen": {
         "signal": true
       },
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "executor": "@nx/web:file-server",
       "options": {
         "buildTarget": "web:build",

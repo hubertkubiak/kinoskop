@@ -1,0 +1,151 @@
+<section class="ks-card mt-3 p-4 max-h-[70vh] overflow-y-auto" aria-label="Filtry">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="font-display text-xl uppercase">Filtry</h2>
+    <button type="button" class="ks-btn text-sm" (click)="closed.emit()">
+      <ks-icon name="close" [size]="16" /> Zamknij
+    </button>
+  </div>
+
+  <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+    <fieldset>
+      <legend class="text-sm text-ks-muted mb-1">Typ</legend>
+      <div class="flex gap-2 flex-wrap">
+        @for (k of kinds; track k) {
+          <button type="button" class="ks-chip pr-3" [class.!border-ks-accent]="isOn(f().kinds, k)"
+            [attr.aria-pressed]="isOn(f().kinds, k)" (click)="toggleKind(k)">{{ kindLabels[k].many }}</button>
+        }
+      </div>
+      <legend class="text-sm text-ks-muted mb-1 mt-3">Lista</legend>
+      <div class="flex gap-2 flex-wrap">
+        <button type="button" class="ks-chip pr-3" [class.!border-ks-accent]="isOn(f().lists, 'rated')"
+          [attr.aria-pressed]="isOn(f().lists, 'rated')" (click)="toggleList('rated')">Ocenione</button>
+        <button type="button" class="ks-chip pr-3" [class.!border-ks-accent]="isOn(f().lists, 'want2see')"
+          [attr.aria-pressed]="isOn(f().lists, 'want2see')" (click)="toggleList('want2see')">Chcę zobaczyć</button>
+        <label class="ks-chip pr-3 cursor-pointer">
+          <input type="checkbox" [checked]="f().favorite" (change)="fs.update({ favorite: !f().favorite })" /> Ulubione
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="text-sm text-ks-muted mb-1">Moja ocena</legend>
+      <div class="flex items-center gap-2">
+        <label class="sr-only" for="ks-r-from">Ocena od</label>
+        <input id="ks-r-from" class="ks-input w-20 tabular" type="number" min="1" max="10"
+          [value]="f().rating?.[0] ?? 1" (change)="setRange('rating', 0, $any($event.target).value, [1, 10])" />
+        <span aria-hidden="true">–</span>
+        <label class="sr-only" for="ks-r-to">Ocena do</label>
+        <input id="ks-r-to" class="ks-input w-20 tabular" type="number" min="1" max="10"
+          [value]="f().rating?.[1] ?? 10" (change)="setRange('rating', 1, $any($event.target).value, [1, 10])" />
+      </div>
+      <legend class="text-sm text-ks-muted mb-1 mt-3">Rok produkcji</legend>
+      <div class="grid gap-1">
+        <label class="text-xs flex items-center gap-2">od <span class="tabular w-10">{{ f().year?.[0] ?? opts.yearBounds()[0] }}</span>
+          <input type="range" class="flex-1 accent-[var(--ks-accent)]" [min]="opts.yearBounds()[0]" [max]="opts.yearBounds()[1]"
+            [value]="f().year?.[0] ?? opts.yearBounds()[0]" (change)="setRange('year', 0, $any($event.target).value, opts.yearBounds())" />
+        </label>
+        <label class="text-xs flex items-center gap-2">do <span class="tabular w-10">{{ f().year?.[1] ?? opts.yearBounds()[1] }}</span>
+          <input type="range" class="flex-1 accent-[var(--ks-accent)]" [min]="opts.yearBounds()[0]" [max]="opts.yearBounds()[1]"
+            [value]="f().year?.[1] ?? opts.yearBounds()[1]" (change)="setRange('year', 1, $any($event.target).value, opts.yearBounds())" />
+        </label>
+      </div>
+      <legend class="text-sm text-ks-muted mb-1 mt-3">Data oceny</legend>
+      <div class="flex items-center gap-2">
+        <label class="sr-only" for="ks-d-from">Od</label>
+        <input id="ks-d-from" class="ks-input" type="date" [value]="f().ratedAt?.[0] ?? ''" (change)="setRatedAt(0, $any($event.target).value)" />
+        <label class="sr-only" for="ks-d-to">Do</label>
+        <input id="ks-d-to" class="ks-input" type="date" [value]="f().ratedAt?.[1] ?? ''" (change)="setRatedAt(1, $any($event.target).value)" />
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="text-sm text-ks-muted mb-1 flex items-center gap-2">
+        Gatunek
+        <span class="flex gap-1 text-xs">
+          <button type="button" class="underline" [class.text-ks-accent]="f().genreMode === 'any'" (click)="fs.update({ genreMode: 'any' })">dowolny</button>/
+          <button type="button" class="underline" [class.text-ks-accent]="f().genreMode === 'all'" (click)="fs.update({ genreMode: 'all' })">wszystkie</button>
+        </span>
+      </legend>
+      <div class="flex gap-1.5 flex-wrap">
+        @for (g of visibleGenres(); track g.value) {
+          <button type="button" class="ks-chip pr-3 text-xs" [class.!border-ks-accent]="isOn(f().genres, g.value)"
+            [attr.aria-pressed]="isOn(f().genres, g.value)" (click)="toggleGenre(g.value)">{{ g.label }} <span class="text-ks-muted">{{ g.count }}</span></button>
+        } @empty {
+          <p class="text-xs text-ks-muted">Gatunki pojawią się po dopasowaniu tytułów.</p>
+        }
+      </div>
+      @if (opts.genres().length > 16) {
+        <button type="button" class="text-xs underline mt-1" (click)="showAllGenres.set(!showAllGenres())">
+          {{ showAllGenres() ? 'Pokaż mniej' : 'Pokaż wszystkie' }}
+        </button>
+      }
+    </fieldset>
+
+    <fieldset>
+      <legend class="text-sm text-ks-muted mb-1">Kraj produkcji</legend>
+      <div class="flex gap-1.5 flex-wrap max-h-32 overflow-y-auto">
+        @for (c of opts.countries(); track c.value) {
+          <button type="button" class="ks-chip pr-3 text-xs" [class.!border-ks-accent]="isOn(f().countries, c.value)"
+            [attr.aria-pressed]="isOn(f().countries, c.value)" (click)="toggleCountry(c.value)">{{ c.label }} <span class="text-ks-muted">{{ c.count }}</span></button>
+        }
+      </div>
+      <legend class="text-sm text-ks-muted mb-1 mt-3">Narodowość reżysera</legend>
+      <div class="flex gap-1.5 flex-wrap max-h-32 overflow-y-auto">
+        @for (c of opts.directorNationalities(); track c.value) {
+          <button type="button" class="ks-chip pr-3 text-xs" [class.!border-ks-accent]="isOn(f().directorNationalities, c.value)"
+            [attr.aria-pressed]="isOn(f().directorNationalities, c.value)" (click)="toggleNationality(c.value)">{{ c.label }} <span class="text-ks-muted">{{ c.count }}</span></button>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend class="text-sm text-ks-muted mb-1">Epoka akcji</legend>
+      <div class="flex gap-1.5 flex-wrap">
+        @for (e of opts.eras(); track e) {
+          <button type="button" class="ks-chip pr-3 text-xs" [class.!border-ks-accent]="isOn(f().eras, e)"
+            [attr.aria-pressed]="isOn(f().eras, e)" (click)="toggleEra(e)">{{ eraLabels[e] }}</button>
+        }
+      </div>
+      <label class="text-xs flex items-center gap-2 mt-2">
+        <input type="checkbox" [checked]="f().erasCertainOnly" (change)="fs.update({ erasCertainOnly: !f().erasCertainOnly })" />
+        Tylko epoki z pewnych źródeł (Wikidata, słowa kluczowe)
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend class="text-sm text-ks-muted mb-1">Reżyser / aktor</legend>
+      <div class="relative">
+        <label for="ks-person" class="sr-only">Szukaj twórcy</label>
+        <input id="ks-person" class="ks-input w-full" type="search" placeholder="Wpisz nazwisko…" autocomplete="off"
+          role="combobox" [attr.aria-expanded]="personMatches().length > 0" aria-controls="ks-person-list"
+          [value]="personQuery()" (input)="personQuery.set($any($event.target).value)" />
+        @if (personMatches().length) {
+          <ul id="ks-person-list" role="listbox" class="absolute z-10 mt-1 w-full ks-card py-1">
+            @for (p of personMatches(); track p.value) {
+              <li role="option" [attr.aria-selected]="false">
+                <button type="button" class="w-full text-left px-3 py-1 text-sm hover:bg-ks-surface-2" (click)="addPerson(p)">
+                  {{ p.label }} <span class="text-ks-muted">({{ p.count }})</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+      <legend class="text-sm text-ks-muted mb-1 mt-3 flex items-center gap-2">
+        Nagroda
+        <span class="flex gap-1 text-xs">
+          <button type="button" class="underline" [class.text-ks-accent]="f().awardMode === 'nominated'" (click)="fs.update({ awardMode: 'nominated' })">nominowany</button>/
+          <button type="button" class="underline" [class.text-ks-accent]="f().awardMode === 'won'" (click)="fs.update({ awardMode: 'won' })">zdobywca</button>
+        </span>
+      </legend>
+      <div class="flex gap-1.5 flex-wrap">
+        @for (a of opts.awards(); track a.value) {
+          <button type="button" class="ks-chip pr-3 text-xs" [class.!border-ks-accent]="isOn(f().awards, a.value)"
+            [attr.aria-pressed]="isOn(f().awards, a.value)" (click)="toggleAward(a.value)">{{ awardLabels.short(a.value) }} <span class="text-ks-muted">{{ a.count }}</span></button>
+        } @empty {
+          <p class="text-xs text-ks-muted">Brak nagrodzonych tytułów w bibliotece.</p>
+        }
+      </div>
+    </fieldset>
+  </div>
+</section>
