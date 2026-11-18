@@ -22,6 +22,7 @@ export const ExportFileSchema = z.object({
   schemaVersion: z.literal(EXPORT_SCHEMA_VERSION),
   exportedAt: z.iso.datetime({ offset: true }),
   source: z.literal('filmweb'),
+  scriptVersion: z.string().max(20).optional(),
   user: z.object({ id: z.number().int(), name: z.string() }),
   items: z.array(ExportItemSchema).max(50_000),
 });
