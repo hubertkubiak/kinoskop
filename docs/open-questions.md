@@ -1,7 +1,7 @@
 # Otwarte kwestie i rozbieżności ze SPEC (do decyzji autora)
 
 Zgodnie z CLAUDE.md: gdy kod i SPEC się rozjeżdżają, decyzję podejmuje autor, a potem aktualizujemy SPEC.
-Poniżej lista z wstępnej implementacji (2026-11-18). SPEC.md nie był zmieniany.
+Poniżej lista z wstępnej implementacji (2026-11-18). SPEC.md zmieniany tylko po decyzji autora (sekcja „Zatwierdzone”).
 
 ## Wymaga działania autora
 
@@ -34,7 +34,17 @@ Poniżej lista z wstępnej implementacji (2026-11-18). SPEC.md nie był zmienian
 | 12 | §7.7 laureaci | nominacje bywają niekompletne; „Daniels” jako laureat reżyserii (duet, nie człowiek w Wikidata) | jakość danych Wikidata |
 | 13 | `apps/web/src/assets/demo` | `apps/web/public/assets/demo` | konwencja Angular 22 (`public/`) |
 
+## Zatwierdzone przez autora (SPEC zaktualizowany)
+
+- 2026-11-18: import plików CSV z innych narzędzi (format Letterboxd, np. Filmweb2Letterboxd) jako druga ścieżka
+  obok skryptu – SPEC §4, §5.1, §5.4, §14.1. Demo zostaje pod przyciskiem „Zobacz demo”, wyłącznie jako pokaz
+  możliwości. Filmatyk nieobsługiwany (projekt martwy od 2020, plik zawiera sesję logowania).
+
 ## Znane ograniczenia wstępnej wersji
+
+- Import CSV: tytuły dopasowywane wyłącznie po nazwie i roku (brak Filmweb ID), więc bez klucza TMDB/IGDB nic się
+  nie dopasuje. Nagrody łączą się z nimi tylko przez TMDB ID lub Q-ID (nie przez Filmweb ID).
+  `WatchedDate` w plikach Filmweb2Letterboxd to raczej data oceny na Filmwebie niż data obejrzenia.
 
 - Krawędzie Mapy gustu są słabo widoczne przy dużym oddaleniu.
 - Weryfikacja kryterium Fazy 3 („≥ 90% dopasowań z confidence ≥ 0.8”) wymaga prawdziwego eksportu i klucza TMDB.

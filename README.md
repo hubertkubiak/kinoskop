@@ -63,7 +63,9 @@
 
 ## 🚀 Jak zacząć (dla użytkownika)
 
-Nie chcesz niczego importować? Kliknij **„Zobacz demo”**, żeby obejrzeć aplikację na przykładowym, fikcyjnym profilu.
+Są dwie drogi importu. Obie działają w całości w przeglądarce.
+
+### A. Skrypt Kinoskopu (zalecane, najdokładniejsze dane)
 
 1. Zaloguj się na **filmweb.pl**.
 2. W Kinoskopie kliknij **„Skopiuj skrypt”**.
@@ -71,6 +73,17 @@ Nie chcesz niczego importować? Kliknij **„Zobacz demo”**, żeby obejrzeć a
 4. Przeciągnij pobrany plik `kinoskop-eksport-….json` na stronę Kinoskopu.
 
 Skrypt pobiera tylko **Twoje własne dane** (oceny, daty, listy) zapytaniami GET, w tempie zbliżonym do ręcznego przeglądania, i zapisuje plik na Twoim dysku. Regulamin Filmwebu ogranicza korzystanie z programów automatycznych, więc z importu korzystasz na własną odpowiedzialność. Jego pełny kod jest widoczny w aplikacji przed skopiowaniem. Szczegółowa instrukcja z rozwiązywaniem problemów jest w aplikacji.
+
+### B. Masz już plik CSV z innego narzędzia
+
+Przeciągnij na stronę importu jeden lub kilka plików CSV w formacie Letterboxd, np. z Filmweb2Letterboxd
+(`Title,Year,WatchedDate,Rating10`) albo eksport z samego Letterboxd (`Name,Year,Rating`). Rodzaj (film, serial,
+gra) i listę („chcę zobaczyć”) Kinoskop rozpozna po nazwie pliku, a przed zapisem pokaże podsumowanie.
+Takie pliki nie mają identyfikatorów Filmwebu ani ulubionych, więc tytuły są dopasowywane po nazwie i roku.
+Wymaga to klucza `TMDB_API_TOKEN` (dla gier `TWITCH_*`), a część pozycji może trzeba będzie potwierdzić
+w widoku **Weryfikacja**. Szczegóły: SPEC §5.4.
+
+Chcesz tylko zobaczyć, co potrafi aplikacja? Kliknij **„Zobacz demo”**. To fikcyjny profil.
 
 ## 🛠️ Uruchomienie lokalne (dla dewelopera)
 

@@ -147,13 +147,13 @@ Claude Code **nie może zgadywać identyfikatorów**. Każde P-ID i Q-ID trzeba 
 ExportFile = {
   schemaVersion: 1,
   exportedAt: string,            // ISO
-  source: 'filmweb',
+  source: 'filmweb' | 'csv',     // 'csv' = przekonwertowany w przeglądarce z pliku innego narzędzia (5.4)
   user: { id: number, name: string },
   items: ExportItem[]
 }
 
 ExportItem = {
-  filmwebId: number,
+  filmwebId: number,             // > 0: Filmweb ID; < 0: lokalny klucz pozycji bez Filmweb ID (import CSV, 5.4)
   kind: 'film' | 'serial' | 'game',
   list: 'rated' | 'want2see',
   rating?: number,               // 1–10
@@ -192,11 +192,12 @@ Person = { name: string, tmdbId?: number, wikidataId?: string,
 ### 5.1 Przepływ
 
 1. Ekran startowy (bez danych) pokazuje kreator **„Zaimportuj swoje dane”** w 3 krokach z ilustracjami.
-2. Obok kreatora przycisk **„Zobacz demo”**: ładuje przykładowy, fikcyjny profil (sekcja 14.3), żeby każdy mógł obejrzeć aplikację bez importu.
+2. Obok kreatora przycisk **„Zobacz demo”**: ładuje przykładowy, fikcyjny profil (sekcja 14.3), żeby każdy mógł obejrzeć aplikację bez importu. Demo służy wyłącznie pokazaniu możliwości; priorytetem UX jest import prawdziwych danych (decyzja autora 2026-11-18).
 3. Przycisk **„Skopiuj skrypt”**. Pod nim rozwijany podgląd pełnego, czytelnego kodu skryptu (transparentność).
 4. Użytkownik wkleja skrypt w konsolę na filmweb.pl (zwykle kilkanaście–kilkadziesiąt sekund), skrypt pokazuje postęp i na końcu **pobiera plik** `kinoskop-eksport-RRRR-MM-DD.json`.
 5. Użytkownik przeciąga plik na stronę Kinoskopu albo wybiera go przyciskiem.
-6. Aplikacja waliduje plik (Zod), zapisuje go w IndexedDB, uruchamia wzbogacanie z paskiem postępu („Dopasowuję tytuły… 340/1512”) i od razu pokazuje statystyki, które da się policzyć bez wzbogacenia.
+6. Zamiast pliku ze skryptu użytkownik może upuścić jeden lub kilka plików CSV z innych narzędzi (5.4). Format rozpoznawany jest po zawartości; przed zapisem aplikacja pokazuje podsumowanie do potwierdzenia.
+7. Aplikacja waliduje plik (Zod), zapisuje go w IndexedDB, uruchamia wzbogacanie z paskiem postępu („Dopasowuję tytuły… 340/1512”) i od razu pokazuje statystyki, które da się policzyć bez wzbogacenia.
 
 Alternatywa w kreatorze: **bookmarklet** („Przeciągnij ten przycisk na pasek zakładek, potem kliknij go na filmweb.pl”). To ta sama logika w wersji zminifikowanej. Wymaga `DomSanitizer.bypassSecurityTrustUrl` dla `javascript:` i jasnego opisu.
 
@@ -251,6 +252,18 @@ Wymagania:
 | podstawowe info tytułu (tylko jeśli niezbędne do dopasowania) | `GET /api/v1/title/{id}/info` | do potwierdzenia |
 
 Wszystkie ścieżki i mapowanie pól trzymaj w jednym module (`endpoints.ts` + `mappers.ts`), żeby zmiana po stronie Filmwebu wymagała poprawki w jednym miejscu. Testy mapperów działają na fixture'ach z `fixtures/filmweb/`.
+
+### 5.4 Import z plików innych narzędzi (CSV w formacie Letterboxd)
+
+Druga, równorzędna ścieżka dla osób, które mają już eksport (decyzja autora 2026-11-18). Rekomendacja: skrypt (5.3) daje najdokładniejsze dane (Filmweb ID, ulubione, gry, „chcę zobaczyć”); CSV jest najłatwiejszy dla tych, którzy plik już mają.
+
+- Obsługiwane: CSV z wierszem nagłówka i kolumną `Title` lub `Name`; opcjonalnie `Year`, `WatchedDate` / `Watched Date` / `Date` (`RRRR-MM-DD`), `Rating10` (1–10) lub `Rating` (0,5–5 gwiazdek → ×2). Obejmuje to pliki Filmweb2Letterboxd (`Title,Year,WatchedDate,Rating10`) i eksport z Letterboxd (`Date,Name,Year,Letterboxd URI,Rating`).
+- Kilka plików naraz. Rodzaj i lista z nazwy pliku: `videogame`/`game` → gra, `serial`/`tvshow`/`series` → serial, inaczej film; `watchlist`/`want` → „chcę zobaczyć”, inaczej oceny.
+- Duplikaty (rodzaj + znormalizowany tytuł + rok) są scalane; tytuł obecny w ocenach i na liście „chcę zobaczyć” zostaje oceniony.
+- Pliki nie mają Filmweb ID ani ulubionych. Każda pozycja dostaje **deterministyczny, ujemny** lokalny klucz (FNV-1a z rodzaju, tytułu i roku), więc ponowny import zachowuje dopasowania z cache.
+- Wzbogacanie pomija etap 1 (Wikidata po Filmweb ID) i od razu wysyła tytuł i rok (etap 2, 14.4). Bez klucza TMDB (filmy, seriale) lub IGDB (gry) pozycji nie da się dopasować; podgląd importu o tym ostrzega.
+- Konwersja wyłącznie w przeglądarce (`libs/shared/src/csv-import.ts`); z pliku brane są tylko dane własne użytkownika (tytuł i rok do dopasowania, ocena, data).
+- Filmatyk (`filmatyk.dat`) świadomie nieobsługiwany: projekt nierozwijany od 2020 r., a plik zawiera zapisaną sesję logowania do Filmwebu.
 
 ---
 
@@ -663,7 +676,8 @@ Konsekwencją naruszenia może być zablokowanie lub usunięcie konta użytkowni
 4. **Brak hotlinkowania** grafik Filmwebu; plakaty z TMDB/IGDB.
 5. **Jasna informacja dla użytkownika** przed skopiowaniem skryptu (checkbox wymagany do odblokowania przycisku „Skopiuj skrypt”): „Skrypt automatyzuje pobranie Twoich własnych ocen z Filmwebu. Regulamin Filmwebu ogranicza korzystanie z programów automatycznych; korzystasz z importu na własną odpowiedzialność. Alternatywa: poproś Filmweb o kopię swoich danych (art. 15 i 20 RODO).”
 6. **Zgoda Filmwebu (zalecane przed publicznym startem importu):** autor pisze do Filmwebu z opisem narzędzia i prośbą o akceptację lub wskazanie warunków. Do czasu odpowiedzi publiczna wersja może działać z **włączonym trybem demo i importem za flagą** `PUBLIC_IMPORT_ENABLED` (domyślnie `false` w produkcji). Lokalnie autor może używać importu dla siebie.
-7. **Gotowość na eksport RODO:** jeśli Filmweb udostępni użytkownikom oficjalny eksport danych, dodać jego parser jako preferowaną ścieżkę importu, bez skryptu.
+7. **Import CSV z innych narzędzi (5.4)** nie generuje żadnych zapytań do Filmwebu; Kinoskop nie odpowiada za sposób, w jaki inne narzędzie pobrało dane.
+8. **Gotowość na eksport RODO:** jeśli Filmweb udostępni użytkownikom oficjalny eksport danych, dodać jego parser jako preferowaną ścieżkę importu, bez skryptu.
 
 ### 14.2 Znak towarowy Filmweb
 
