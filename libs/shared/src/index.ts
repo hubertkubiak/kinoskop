@@ -6,3 +6,4 @@ export * from './genres';
 export * from './enrichment';
 export * from './api';
 export * from './awards';
+export * from './ai/era-prompt';

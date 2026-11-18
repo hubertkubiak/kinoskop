@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { ERA_LABELS } from '@kinoskop/shared';
 import { activityHeatmap, decadeBuckets, eraStats } from '@kinoskop/stats';
 import type { EChartsCoreOption } from 'echarts/core';
+import { AiErasPanel } from '../../ai/ai-eras-panel';
 import { ChartCard } from '../../charts/chart-card';
 import { ChartTheme } from '../../charts/theme';
 import { FiltersStore } from '../../core/filters.store';
@@ -12,9 +13,10 @@ const MONTHS = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', '
 @Component({
   selector: 'ks-eras-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ChartCard],
+  imports: [ChartCard, AiErasPanel],
   template: `
     <h1 class="font-display text-4xl uppercase mb-4">Czas i epoki</h1>
+    <ks-ai-eras-panel />
 
     <ks-chart-card heading="Epoka akcji" [subtitle]="eraSubtitle()" [option]="eraOption()" [table]="eraTable()" height="360px"
       [empty]="eras().eras.length === 0">

@@ -28,6 +28,12 @@ export class DataResetService {
     if (!(await firstValueFrom(ref.closed))) return;
     await this.store.clear();
     for (const h of this.hooks) h();
+    try {
+      // AI key remembered "until the tab closes" (see AiKeyStore) – removed even if the store was never created.
+      sessionStorage.removeItem('kinoskop-ai-v1');
+    } catch {
+      /* storage unavailable */
+    }
     await this.router.navigateByUrl('/start');
   }
 }

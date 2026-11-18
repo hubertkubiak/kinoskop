@@ -1,0 +1,80 @@
+@if (ai.pending().length > 0 || ai.state() !== 'idle') {
+  <section class="ks-card p-4 mb-4" aria-labelledby="ks-ai-h">
+    <div class="flex flex-wrap items-center gap-3 justify-between">
+      <p id="ks-ai-h" class="flex items-center gap-2">
+        <ks-icon name="sparkles" class="text-ks-accent" />
+        Epoka nieustalona dla <strong class="tabular">{{ ai.pending().length }}</strong> tytułów. Uzupełnij je przez AI własnym kluczem.
+      </p>
+      <button type="button" class="ks-btn text-sm" [attr.aria-expanded]="open()" (click)="open.set(!open())">
+        <ks-icon name="key" [size]="16" /> Ustawienia AI
+      </button>
+    </div>
+
+    @if (open()) {
+      <div class="grid gap-4 md:grid-cols-2 mt-4">
+        <div class="space-y-3">
+          <label class="block text-sm">Dostawca
+            <select class="ks-input w-full mt-1" [value]="key.provider()" (change)="onProvider($any($event.target).value)">
+              @for (p of providers; track p.id) { <option [value]="p.id">{{ p.name }}</option> }
+            </select>
+          </label>
+          <p class="text-xs text-ks-muted">{{ key.info().note }}</p>
+          <label class="block text-sm">Model
+            <select class="ks-input w-full mt-1" [value]="key.model()" (change)="key.model.set($any($event.target).value); key.persist()">
+              @for (m of key.info().models; track m.id) { <option [value]="m.id">{{ m.label }}</option> }
+            </select>
+          </label>
+          <label class="block text-sm">Klucz API
+            <input type="password" autocomplete="off" spellcheck="false" class="ks-input w-full mt-1" data-testid="ai-key"
+              [value]="key.apiKey()" (change)="key.setKey($any($event.target).value)" placeholder="Wklej swój klucz" />
+          </label>
+          <label class="text-xs flex items-center gap-2">
+            <input type="checkbox" [checked]="key.remember()" (change)="key.setRemember(!key.remember())" />
+            Zapamiętaj do zamknięcia karty (sessionStorage)
+          </label>
+          <div class="flex gap-2">
+            <button type="button" class="ks-btn text-sm" (click)="key.clear()" [disabled]="!key.apiKey()">Usuń klucz</button>
+            <button type="button" class="text-sm underline" (click)="showHowTo.set(!showHowTo())">Jak zdobyć klucz?</button>
+          </div>
+          @if (showHowTo()) {
+            <ol class="text-sm list-decimal ml-5 text-ks-muted">
+              @for (s of key.info().keyHowTo; track s) { <li>{{ s }}</li> }
+              <li><a class="underline" [href]="key.info().keyUrl" target="_blank" rel="noopener noreferrer">{{ key.info().keyUrl }}</a></li>
+            </ol>
+          }
+          <p class="text-xs text-ks-muted">
+            Klucz zostaje w tej przeglądarce i trafia wyłącznie do wybranego dostawcy – nigdy na serwer Kinoskopu.
+            Rozliczenia i limity są po stronie dostawcy; korzystając z niego, akceptujesz jego regulamin.
+          </p>
+        </div>
+
+        <div class="space-y-3">
+          @let est = ai.estimate();
+          <div class="rounded-ks-sm bg-ks-surface-2 p-3 text-sm">
+            <p><strong>Podsumowanie:</strong> {{ est.titles }} tytułów, {{ est.requests }} zapytań (po 20 tytułów).</p>
+            @if (est.costUsd !== undefined) {
+              <p>Szacowany koszt: {{ usd(est.costUsd) }}.</p>
+            } @else {
+              <p>Darmowy tier: pamiętaj o dziennym limicie zapytań dostawcy.</p>
+            }
+            <p class="text-xs text-ks-muted mt-1">Wysyłamy tylko publiczne dane: tytuł, rok, opis i słowa kluczowe. Nigdy Twoich ocen.</p>
+          </div>
+          @if (ai.state() === 'running') {
+            <ks-film-leader label="Klasyfikuję epoki…" [done]="ai.done()" [total]="ai.total()" />
+            <button type="button" class="ks-btn text-sm" (click)="ai.stop()">Przerwij</button>
+          } @else {
+            <button type="button" class="ks-btn ks-btn-primary" data-testid="ai-run" [disabled]="!key.ready() || ai.pending().length === 0" (click)="ai.run()">
+              <ks-icon name="sparkles" [size]="16" /> {{ ai.state() === 'stopped' ? 'Wznów klasyfikację' : 'Uruchom klasyfikację' }}
+            </button>
+          }
+          @if (ai.state() === 'done' || ai.state() === 'stopped') {
+            <p class="text-sm" role="status">
+              Ustalono epokę dla {{ ai.classified() }} tytułów. Odrzucone odpowiedzi: {{ ai.rejected() }} (liczone jako „nieustalona”).
+            </p>
+          }
+          @if (ai.error(); as err) { <p class="text-sm text-ks-negative" role="alert">{{ err }} Postęp jest zapisany – możesz wznowić później.</p> }
+        </div>
+      </div>
+    }
+  </section>
+}

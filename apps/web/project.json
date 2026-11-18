@@ -45,7 +45,10 @@
         "define": {
           "KS_API_BASE_URL": "\"\"",
           "KS_PUBLIC_IMPORT_ENABLED": "true"
-        }
+        },
+        "allowedCommonJsDependencies": [
+          "standardwebhooks"
+        ]
       },
       "configurations": {
         "production": {
@@ -65,6 +68,18 @@
           "define": {
             "KS_API_BASE_URL": "\"\"",
             "KS_PUBLIC_IMPORT_ENABLED": "true"
+          },
+          "index": {
+            "input": "apps/web/src/index.prod.html",
+            "output": "index.html"
+          },
+          "optimization": {
+            "scripts": true,
+            "styles": {
+              "minify": true,
+              "inlineCritical": false
+            },
+            "fonts": true
           }
         },
         "development": {

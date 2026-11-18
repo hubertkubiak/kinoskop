@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <title>Kinoskop</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Kinoskop – statystyki, mapa gustu i nagrody na podstawie Twoich ocen." />
+    <meta name="referrer" content="no-referrer" />
+    <!-- Strict CSP (SPEC §7.11): no external or inline scripts; connect-src limited to the own API and the chosen AI providers. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://image.tmdb.org https://images.igdb.com; font-src 'self'; connect-src 'self' https://api.anthropic.com https://openrouter.ai https://generativelanguage.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'none'" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  </head>
+  <body>
+    <ks-root></ks-root>
+  </body>
+</html>
