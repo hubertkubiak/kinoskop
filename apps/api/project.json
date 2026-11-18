@@ -3,27 +3,36 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/api/src",
   "projectType": "application",
-  "tags": [],
+  "tags": [
+    "scope:api"
+  ],
   "targets": {
     "build": {
       "executor": "@nx/esbuild:esbuild",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "defaultConfiguration": "production",
       "options": {
         "platform": "node",
         "outputPath": "dist/apps/api",
-        "format": ["cjs"],
-        "bundle": false,
+        "format": [
+          "cjs"
+        ],
+        "bundle": true,
         "main": "apps/api/src/main.ts",
         "tsConfig": "apps/api/tsconfig.app.json",
-        "assets": ["apps/api/src/assets"],
+        "assets": [
+          "apps/api/src/assets"
+        ],
         "generatePackageJson": true,
         "esbuildOptions": {
           "sourcemap": true,
           "outExtension": {
             ".js": ".js"
           }
-        }
+        },
+        "thirdParty": false
       },
       "configurations": {
         "development": {},
@@ -38,7 +47,9 @@
       }
     },
     "prune-lockfile": {
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "cache": true,
       "executor": "@nx/js:prune-lockfile",
       "inputs": [
@@ -62,23 +73,37 @@
       }
     },
     "copy-workspace-modules": {
-      "dependsOn": ["build"],
+      "dependsOn": [
+        "build"
+      ],
       "cache": true,
-      "outputs": ["{workspaceRoot}/dist/apps/api/workspace_modules"],
+      "outputs": [
+        "{workspaceRoot}/dist/apps/api/workspace_modules"
+      ],
       "executor": "@nx/js:copy-workspace-modules",
       "options": {
         "buildTarget": "build"
       }
     },
     "prune": {
-      "dependsOn": ["prune-lockfile", "copy-workspace-modules"],
+      "dependsOn": [
+        "prune-lockfile",
+        "copy-workspace-modules"
+      ],
       "executor": "nx:noop"
     },
     "serve": {
       "continuous": true,
-      "dependsOn": ["^build"],
-      "readyWhen": {
-        "signal": true
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx watch --tsconfig apps/api/tsconfig.app.json apps/api/src/main.ts",
+        "cwd": "."
+      }
+    },
+    "awards-refresh": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx --tsconfig apps/api/tsconfig.app.json apps/api/src/awards/refresh.ts"
       }
     }
   }

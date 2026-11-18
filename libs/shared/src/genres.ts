@@ -2,7 +2,7 @@
  * Polish genre names (SPEC §7.2). Source genres come from TMDB (films, series), IGDB (games)
  * and – for the demo profile – Wikidata. We map by English *names*, which are visible in the
  * respective APIs (TMDB `GET /3/genre/movie/list?language=en-US`, IGDB `genres.name`), so the
- * dictionary can be checked by eye. Unknown names are passed through unchanged.
+ * dictionary can be checked by eye.
  */
 
 const FILM_TV: Record<string, string[]> = {
@@ -68,6 +68,20 @@ const FILM_TV: Record<string, string[]> = {
   'sitcom': ['Komedia'],
   'anthology': ['Antologia'],
   'mockumentary': ['Komedia'],
+  gangster: ['Kryminał'],
+  suspense: ['Thriller'],
+  'crime drama': ['Kryminał', 'Dramat'],
+  'police procedural': ['Kryminał'],
+  'contemporary western': ['Western'],
+  'epic': [],
+  'buddy': ['Komedia'],
+  'slasher': ['Horror'],
+  'zombie': ['Horror'],
+  'space opera': ['Sci-Fi'],
+  'cyberpunk': ['Sci-Fi'],
+  'dystopian': ['Sci-Fi'],
+  'post-apocalyptic': ['Sci-Fi'],
+  'drama television series': ['Dramat'],
 };
 
 const GAMES: Record<string, string[]> = {
@@ -127,13 +141,14 @@ function normalise(name: string): string {
   return n.trim();
 }
 
-/** Maps an English genre name to one or more Polish genre names. */
+/**
+ * Maps an English genre name to Polish genre names. Unknown names are dropped (Wikidata has
+ * hundreds of fine-grained genres); extend the dictionaries above to keep more of them.
+ */
 export function mapGenre(name: string, kind: 'film' | 'serial' | 'game'): string[] {
   const n = normalise(name);
   const dict = kind === 'game' ? GAMES : FILM_TV;
-  const hit = dict[n] ?? (n === 'science' ? FILM_TV['science fiction'] : undefined);
-  if (hit) return hit;
-  return [name.trim().charAt(0).toUpperCase() + name.trim().slice(1)];
+  return dict[n] ?? (n === 'science' ? FILM_TV['science fiction'] : []);
 }
 
 /** Maps and deduplicates a list of English genre names. */

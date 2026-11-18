@@ -1,43 +1,43 @@
-#!/usr/bin/env tsx
-// @nx-target-name: serve
-import Fastify from 'fastify';
-import { app } from './app/app';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { buildApp } from './app';
+import { SqliteCacheStore } from './cache/cache-store';
+import { loadEnv } from './env';
+import { IgdbClient } from './sources/igdb';
+import { OmdbClient } from './sources/omdb';
+import { TmdbClient } from './sources/tmdb';
+import { WikidataClient } from './wikidata/client';
 
-const host = process.env.HOST ?? 'localhost';
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+async function main() {
+  const envFile = join(process.cwd(), '.env');
+  if (existsSync(envFile)) process.loadEnvFile(envFile);
+  const env = loadEnv();
 
-// Instantiate Fastify with some config
-const server = Fastify({
-  logger: true,
-});
+  const cache = new SqliteCacheStore(env.CACHE_DB_PATH);
+  const app = await buildApp({
+    env,
+    cache,
+    sources: {
+      wikidata: new WikidataClient(env.WIKIDATA_CONTACT),
+      tmdb: new TmdbClient(env.TMDB_API_TOKEN),
+      igdb: new IgdbClient(env.TWITCH_CLIENT_ID, env.TWITCH_CLIENT_SECRET),
+      omdb: new OmdbClient(env.OMDB_API_KEY),
+    },
+  });
 
-// Register your application as a normal plugin.
-server.register(app);
+  await app.listen({ port: env.PORT, host: env.HOST });
+  console.log(`[ ready ] http://${env.HOST}:${env.PORT}`);
 
-// Start listening.
-server.listen({ port, host }, (err) => {
-  if (err) {
-    server.log.error(err);
-    process.exit(1);
-  } else {
-    console.log(`[ ready ] http://${host}:${port}`);
-    // Set when Nx waits for this server to be ready
-    if (process.env.NX_READY_SIGNAL_SOCKET) {
-      // Function keeps TypeScript and bundlers from rewriting or bundling the import.
-      // Not awaited: Fastify warns when a listen callback is async.
-      const load = new Function('s', 'return import(s)') as (
-        s: string,
-      ) => Promise<{ emitReadySignal(server: unknown): boolean }>;
-      load('@nx/js/ready-signal')
-        .then((readySignal) => readySignal.emitReadySignal(server.server))
-        .catch(() => {
-          // @nx/js isn't installed
-        });
-    }
-  }
-});
+  const shutdown = async () => {
+    await app.close();
+    cache.close();
+    process.exit(0);
+  };
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+}
 
-process.on('SIGTERM', async () => {
-  await server.close();
-  process.exit(0);
+main().catch((e) => {
+  console.error(e instanceof Error ? e.message : e);
+  process.exit(1);
 });
