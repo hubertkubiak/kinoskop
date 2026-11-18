@@ -91,8 +91,13 @@ pnpm nx serve web           # frontend → http://localhost:4200 (proxy /api →
 | `pnpm nx test <projekt>` | testy jednostkowe (Vitest) |
 | `pnpm nx e2e web-e2e` | testy e2e (Playwright) na przykładowym eksporcie z `fixtures/` |
 | `pnpm nx build import-script` | buduje skrypt konsolowy i bookmarklet |
-| `pnpm awards:refresh` | odświeża katalog nagród z Wikidata |
+| `pnpm awards:refresh` | odświeża katalog nagród z Wikidata (`apps/api/src/assets/awards.json`) |
+| `pnpm demo:generate` | regeneruje fikcyjny profil demo z Wikidata (deterministyczny seed) |
 | `docker compose up --build` | lokalnie: API w kontenerze + front |
+
+Bez kluczy TMDB/IGDB API działa w trybie „tylko Wikidata” (mapowanie, kraje, reżyserzy, epoki, nagrody),
+a tryb demo nie potrzebuje API w ogóle. Stan wstępnej wersji, odstępstwa od SPEC i rzeczy czekające na
+autora (m.in. Faza 0 – sonda API Filmwebu): [`docs/open-questions.md`](docs/open-questions.md).
 
 ### Zmienne środowiskowe
 
