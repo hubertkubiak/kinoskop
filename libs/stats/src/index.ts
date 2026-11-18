@@ -5,3 +5,7 @@ export * from './overview';
 export * from './genres';
 export * from './ratings';
 export * from './facts';
+export * from './world';
+export * from './time';
+export * from './people';
+export * from './taste';

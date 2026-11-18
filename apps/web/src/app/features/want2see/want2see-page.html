@@ -1,0 +1,58 @@
+<h1 class="font-display text-4xl uppercase mb-4">Chcę zobaczyć</h1>
+
+<div class="flex flex-wrap items-center gap-3 mb-3">
+  <label class="text-sm flex items-center gap-2">Sortuj
+    <select class="ks-input" [value]="sort()" (change)="sort.set($any($event.target).value)">
+      <option value="taste">najlepiej pasujące do Twojego gustu</option>
+      <option value="public">ocena ogółu (TMDB)</option>
+      <option value="year">rok (najnowsze)</option>
+      <option value="runtime">czas trwania (najkrótsze)</option>
+    </select>
+  </label>
+  <label class="text-sm flex items-center gap-2">
+    <input type="checkbox" [checked]="onlyMine()" (change)="onlyMine.set(!onlyMine())" [disabled]="myServices().length === 0" />
+    Dostępne na moich serwisach
+  </label>
+  <span class="text-sm text-ks-muted tabular">{{ rows().length }} tytułów</span>
+</div>
+
+@if (allServices().length) {
+  <details class="ks-card p-3 mb-4">
+    <summary class="cursor-pointer text-sm">Moje serwisy ({{ myServices().length }})</summary>
+    <div class="flex flex-wrap gap-2 mt-2">
+      @for (s of allServices(); track s.id) {
+        <label class="ks-chip pr-3 text-xs cursor-pointer">
+          <input type="checkbox" [checked]="myServices().includes(s.id)" (change)="toggleService(s.id)" /> {{ s.name }}
+        </label>
+      }
+    </div>
+  </details>
+}
+
+<cdk-virtual-scroll-viewport itemSize="112" class="h-[70vh] ks-card" aria-label="Lista chcę zobaczyć">
+  <div *cdkVirtualFor="let r of rows(); trackBy: trackRow" class="flex gap-3 p-3 border-b border-ks-border h-[112px]">
+    <ks-poster class="w-[60px] h-[88px]" [src]="r.item.enrichment?.posterUrl" [title]="r.title" />
+    <div class="flex-1 min-w-0">
+      <p class="font-medium truncate">{{ r.title }} <span class="text-ks-muted tabular">{{ r.item.year ?? r.item.enrichment?.year }}</span></p>
+      <p class="text-xs text-ks-muted truncate">{{ r.item.enrichment?.genres?.join(', ') }}</p>
+      <p class="text-xs mt-1 tabular">
+        @if (r.score !== undefined) { Dopasowanie: <strong class="text-ks-accent">{{ avg(r.score) }}</strong> · }
+        @if (r.item.enrichment?.publicRating?.tmdb !== undefined) { TMDB {{ avg(r.item.enrichment?.publicRating?.tmdb) }} · }
+        @if (r.item.enrichment?.runtimeMinutes) { {{ r.item.enrichment.runtimeMinutes }} min }
+      </p>
+      <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs">
+        @for (g of r.providers; track g.type) {
+          <span class="flex items-center gap-1">
+            <span class="text-ks-muted">{{ g.type }}:</span>
+            @for (p of g.list.slice(0, 4); track p.id) {
+              @if (p.logoUrl) {
+                <img [src]="p.logoUrl" [alt]="p.name" [title]="p.name" width="20" height="20" class="rounded" loading="lazy" referrerpolicy="no-referrer" />
+              } @else { <span>{{ p.name }}</span> }
+            }
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+</cdk-virtual-scroll-viewport>
+<p class="text-xs text-ks-muted mt-2">Gdzie obejrzeć w Polsce: dane JustWatch (przez TMDB).</p>

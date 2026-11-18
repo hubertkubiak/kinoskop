@@ -63,8 +63,9 @@ describe('eras', () => {
     expect(eraFromLabel(label)).toBe(era);
   });
 
-  it('returns undefined for unrelated labels', () => {
+  it('returns undefined for unrelated or too broad labels', () => {
     expect(eraFromLabel('based on novel or book')).toBeUndefined();
+    expect(eraFromLabel('20th century')).toBeUndefined();
   });
 
   it('buckets years', () => {

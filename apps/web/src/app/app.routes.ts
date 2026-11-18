@@ -40,6 +40,36 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./features/ratings/ratings-page').then((m) => m.RatingsPage),
       },
       {
+        path: 'swiat',
+        title: 'Świat – Kinoskop',
+        canActivate: [requireData],
+        loadComponent: () => import('./features/world/world-page').then((m) => m.WorldPage),
+      },
+      {
+        path: 'epoki',
+        title: 'Czas i epoki – Kinoskop',
+        canActivate: [requireData],
+        loadComponent: () => import('./features/eras/eras-page').then((m) => m.ErasPage),
+      },
+      {
+        path: 'tworcy',
+        title: 'Twórcy – Kinoskop',
+        canActivate: [requireData],
+        loadComponent: () => import('./features/creators/creators-page').then((m) => m.CreatorsPage),
+      },
+      {
+        path: 'chce-zobaczyc',
+        title: 'Chcę zobaczyć – Kinoskop',
+        canActivate: [requireData],
+        loadComponent: () => import('./features/want2see/want2see-page').then((m) => m.Want2seePage),
+      },
+      {
+        path: 'weryfikacja',
+        title: 'Weryfikacja – Kinoskop',
+        canActivate: [requireData],
+        loadComponent: () => import('./features/verification/verification-page').then((m) => m.VerificationPage),
+      },
+      {
         path: 'o-aplikacji',
         title: 'O aplikacji – Kinoskop',
         loadComponent: () => import('./features/about/about-page').then((m) => m.AboutPage),

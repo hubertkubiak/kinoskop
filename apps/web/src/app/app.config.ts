@@ -9,6 +9,7 @@ import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from 
 import { provideEchartsCore } from 'ngx-echarts';
 import { appRoutes } from './app.routes';
 import { ApiClient } from './core/api.client';
+import { EnrichmentService } from './core/enrichment.service';
 import { LibraryStore } from './core/library.store';
 
 export const appConfig: ApplicationConfig = {
@@ -21,7 +22,9 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       // Wake the API in the background (it may be asleep on a free host, SPEC §8.4).
       void inject(ApiClient).warmUp();
-      return inject(LibraryStore).init();
+      const enrichment = inject(EnrichmentService);
+      // Resume enrichment after a reload if some titles are still missing metadata.
+      return inject(LibraryStore).init().then(() => void enrichment.start());
     }),
   ],
 };

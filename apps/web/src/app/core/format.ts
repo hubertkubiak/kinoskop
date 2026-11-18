@@ -2,9 +2,13 @@ const regionNames = new Intl.DisplayNames(['pl'], { type: 'region' });
 const numberFmt = new Intl.NumberFormat('pl-PL');
 const decimalFmt = new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
+/** Former states still used by Wikidata (ISO 3166-3); Intl maps some of them to successors. */
+const HISTORICAL: Record<string, string> = { SU: 'ZSRR', DD: 'NRD', YU: 'Jugosławia', CS: 'Czechosłowacja', XK: 'Kosowo' };
+
 /** Polish country name for an ISO 3166-1 alpha-2 code. */
 export function countryName(code: string): string {
   if (code === 'unknown') return 'nieznana';
+  if (HISTORICAL[code]) return HISTORICAL[code];
   try {
     return regionNames.of(code) ?? code;
   } catch {

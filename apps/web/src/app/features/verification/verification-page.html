@@ -1,0 +1,66 @@
+<h1 class="font-display text-4xl uppercase mb-2">Weryfikacja dopasowań</h1>
+<p class="text-sm text-ks-muted mb-5">
+  Tytuły bez dopasowania albo z pewnością poniżej 80%. Poprawki zapisujemy w tej przeglądarce i od razu uwzględniamy w statystykach.
+</p>
+
+<ul class="space-y-3">
+  @for (i of items(); track i.key) {
+    <li class="ks-card p-4">
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <p class="text-xs uppercase text-ks-muted">Z Twojego eksportu · {{ kindLabels[i.kind].one }}</p>
+          <p class="font-medium">{{ i.title ?? i.originalTitle ?? '#' + i.filmwebId }}</p>
+          <p class="text-sm text-ks-muted">{{ i.originalTitle && i.originalTitle !== i.title ? i.originalTitle + ' · ' : '' }}{{ i.year ?? 'rok nieznany' }}</p>
+        </div>
+        <div class="flex gap-3">
+          @if (i.enrichment; as e) {
+            <ks-poster class="w-12 h-16" [src]="e.posterUrl" [title]="e.title ?? ''" />
+            <div class="text-sm">
+              <p class="text-xs uppercase text-ks-muted">Propozycja · pewność {{ pct(e.match.confidence) }}</p>
+              <p class="font-medium">{{ e.title }} <span class="text-ks-muted">{{ e.year }}</span></p>
+              <p class="text-ks-muted">{{ e.directors[0]?.name }}</p>
+            </div>
+          } @else {
+            <p class="text-sm text-ks-muted">Brak dopasowania.</p>
+          }
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-3">
+        @if (i.enrichment) {
+          <button type="button" class="ks-btn text-sm" (click)="accept(i)">To jest poprawne</button>
+        }
+        <button type="button" class="ks-btn text-sm" (click)="openSearch(i)">Szukaj ręcznie</button>
+      </div>
+
+      @if (search(); as s) {
+        @if (s.key === i.key) {
+          <form class="mt-3 flex gap-2" (submit)="$event.preventDefault(); openSearch(i, q.value)">
+            <label class="sr-only" [attr.for]="'q-' + i.key">Szukaj tytułu</label>
+            <input #q [id]="'q-' + i.key" class="ks-input flex-1" [value]="s.query" />
+            <button type="submit" class="ks-btn ks-btn-primary text-sm">Szukaj</button>
+          </form>
+          @if (s.loading) { <p class="text-sm text-ks-muted mt-2" role="status">Szukam…</p> }
+          @if (s.error) { <p class="text-sm text-ks-negative mt-2" role="alert">{{ s.error }}</p> }
+          <ul class="mt-2 grid gap-2 sm:grid-cols-2">
+            @for (c of s.candidates; track (c.tmdbId ?? c.igdbId)) {
+              <li>
+                <button type="button" class="w-full text-left flex gap-2 p-2 rounded-ks-sm border border-ks-border hover:border-ks-accent"
+                  [disabled]="saving() === i.key" (click)="choose(i, c)">
+                  <ks-poster class="w-10 h-14" [src]="c.posterUrl" [title]="c.title" />
+                  <span class="text-sm">
+                    <strong>{{ c.title }}</strong> <span class="text-ks-muted">{{ c.year }}</span><br />
+                    @if (c.originalTitle && c.originalTitle !== c.title) { <span class="text-ks-muted">{{ c.originalTitle }}</span> }
+                  </span>
+                </button>
+              </li>
+            } @empty {
+              @if (!s.loading && !s.error) { <li class="text-sm text-ks-muted">Brak wyników.</li> }
+            }
+          </ul>
+        }
+      }
+    </li>
+  } @empty {
+    <li class="ks-card p-6 text-center text-ks-muted">Wszystkie tytuły są dopasowane. 🎬</li>
+  }
+</ul>

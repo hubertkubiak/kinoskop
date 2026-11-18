@@ -4,6 +4,7 @@
 @import '@fontsource/inter/600';
 @import '@fontsource/big-shoulders-display/700';
 @import '@fontsource/big-shoulders-display/800';
+@import '@angular/cdk/overlay-prebuilt.css';
 @import 'tailwindcss';
 
 /* ── Design tokens (SPEC §9.3). Components use only these, never raw colours. ── */
@@ -220,4 +221,8 @@ body::before {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+.cdk-overlay-dark-backdrop {
+  background: color-mix(in srgb, var(--ks-bg) 70%, transparent);
 }

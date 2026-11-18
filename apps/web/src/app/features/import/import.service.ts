@@ -2,6 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { EnrichmentSchema, parseExportFile } from '@kinoskop/shared';
 import { z } from 'zod';
+import { EnrichmentService } from '../../core/enrichment.service';
 import { LibraryStore } from '../../core/library.store';
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
@@ -10,6 +11,7 @@ const MAX_FILE_BYTES = 20 * 1024 * 1024;
 export class ImportService {
   private readonly store = inject(LibraryStore);
   private readonly router = inject(Router);
+  private readonly enrichment = inject(EnrichmentService);
 
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
@@ -28,6 +30,8 @@ export class ImportService {
         return false;
       }
       await this.store.loadExport(result.file, 'import');
+      // Statistics that need no enrichment are shown immediately; enrichment runs in the background.
+      void this.enrichment.start();
       await this.router.navigateByUrl('/przeglad');
       return true;
     } finally {

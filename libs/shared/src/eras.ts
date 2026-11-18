@@ -96,6 +96,8 @@ export function eraFromLabel(rawLabel: string): EraKey | undefined {
     const n = Number(century[1]);
     if (century[2]) return n > 30 ? 'prehistory' : 'antiquity';
     if (n >= 21) return n === 21 ? 'contemporary' : 'future';
+    // "20th century" spans ten of our buckets – too broad to pick one, treat as undetermined.
+    if (n === 20) return undefined;
     return eraFromYear((n - 1) * 100 + 50);
   }
   for (const [needle, era] of LABEL_SUBSTRINGS) {
