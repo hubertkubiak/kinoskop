@@ -64,6 +64,12 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./features/awards/awards-page').then((m) => m.AwardsPage),
       },
       {
+        path: 'mapa-gustu',
+        title: 'Mapa gustu – Kinoskop',
+        canActivate: [requireData],
+        loadComponent: () => import('./features/taste-map/taste-map-page').then((m) => m.TasteMapPage),
+      },
+      {
         path: 'chce-zobaczyc',
         title: 'Chcę zobaczyć – Kinoskop',
         canActivate: [requireData],

@@ -35,7 +35,12 @@
           }
         ],
         "styles": [
-          "apps/web/src/styles.css"
+          "apps/web/src/styles.css",
+          {
+            "input": "node_modules/ng-diagram/styles.css",
+            "bundleName": "ng-diagram",
+            "inject": false
+          }
         ],
         "define": {
           "KS_API_BASE_URL": "\"\"",
