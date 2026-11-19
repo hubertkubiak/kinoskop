@@ -320,8 +320,10 @@ Gatunki: z TMDB (filmy, seriale) i IGDB (gry), zmapowane na polskie nazwy (słow
 
 ### 7.3 Oceny
 
-- histogram: moje oceny vs rozkład średnich ocen ogółu z TMDB (`vote_average`, tylko przy `vote_count ≥ 50`),
-- scatter: moja ocena (oś Y) vs ocena ogółu TMDB lub IMDb (oś X, przełącznik), punkt = tytuł, tooltip z plakatem,
+Wszystkie porównania tylko dla tytułów z średnią TMDB (`vote_average`) przy `vote_count ≥ 50`. Opisy prostym językiem, bez żargonu statystycznego (decyzja autora 2026-11-19: histogram rozkładów i scatter były nieczytelne):
+- **„Ty na tle innych widzów”**: jedno zdanie (oceniasz średnio o X pkt łagodniej/surowiej), Twoja średnia vs średnia TMDB tych samych tytułów, odsetek tytułów ocenionych ≥ 1 pkt wyżej/niżej, zgodność gustu słownie (bardzo zgodny / raczej zgodny / słabo zgodny / niezależny; korelacja Pearsona w nawiasie),
+- **„Co inni sądzą o tytułach, którym dajesz…”**: dla każdej Twojej oceny 1–10 średnia TMDB tych tytułów (słupki) i linia odniesienia „gdyby ogół oceniał jak Ty”,
+- **„Surowość w czasie”**: wg roku wystawienia oceny (`ratedAt`) Twoja średnia i średnia różnica Ty − TMDB (ta druga nie zależy od tego, czy oglądasz lepsze czy gorsze tytuły); lata z < 10 ocenami pominięte; zdanie podsumowania z trendu liniowego („łagodniejesz” / „coraz surowsze” / „stała”),
 - **„Rozjazdy”**: listy „bardziej mi się podobało niż innym” i „mniej mi się podobało” (top 20 wg różnicy),
 - opcjonalnie (z OMDb): moja ocena vs IMDb, Rotten Tomatoes, Metacritic; podsumowanie „Twój gust jest najbliższy: …” (korelacja Pearsona z każdym źródłem).
 

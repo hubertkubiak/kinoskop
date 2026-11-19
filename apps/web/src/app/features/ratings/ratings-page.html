@@ -1,22 +1,60 @@
 <h1 class="font-display text-4xl uppercase mb-5">Oceny</h1>
 
-@if (points().length === 0) {
-  <p class="ks-card p-4 mb-4 text-sm text-ks-muted">
-    Porównanie z oceną ogółu wymaga danych z TMDB (wzbogacanie z kluczem TMDB). W trybie demo opartym o Wikidata ta część jest pusta.
+@if (bias(); as b) {
+  <section class="ks-card p-4 mb-6" aria-labelledby="ks-bias">
+    <h2 id="ks-bias" class="font-display text-xl uppercase mb-3">Ty na tle innych widzów</h2>
+    <p class="text-lg mb-3"><strong class="text-ks-accent">{{ verdict() }}</strong></p>
+    <dl class="grid gap-3 sm:grid-cols-3 mb-3">
+      <div>
+        <dt class="text-xs text-ks-muted">Twoja średnia</dt>
+        <dd class="font-display text-3xl tabular">{{ avg(b.myAvg) }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs text-ks-muted">Średnia ogółu (TMDB) dla tych samych tytułów</dt>
+        <dd class="font-display text-3xl tabular">{{ avg(b.publicAvg) }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs text-ks-muted">Zgodność gustu z ogółem</dt>
+        <dd class="font-display text-3xl">{{ agreement() ?? '–' }}</dd>
+      </div>
+    </dl>
+    <p class="text-sm">
+      W {{ pct(b.higherShare) }} tytułów dajesz co najmniej 1 punkt więcej niż ogół, w {{ pct(b.lowerShare) }} – co najmniej 1 punkt mniej.
+      „Zgodność” mówi, czy tytuły wysoko oceniane przez innych są też wysoko oceniane przez Ciebie
+      (korelacja r = {{ avg(b.correlation) }}; 1 = zawsze w tę samą stronę, 0 = bez związku).
+    </p>
+    <p class="text-xs text-ks-muted mt-2">
+      Porównano {{ int(b.n) }} ocenionych tytułów, które mają w TMDB średnią z co najmniej {{ minVotes }} głosów.
+    </p>
+  </section>
+} @else {
+  <p class="ks-card p-4 mb-6 text-sm text-ks-muted">
+    Porównanie z ogółem widzów wymaga średnich ocen z TMDB. Pojawi się, gdy tytuły zostaną dopasowane (potrzebny klucz TMDB w API).
   </p>
 }
 
 <div class="grid gap-4 xl:grid-cols-2 mb-6">
-  <ks-chart-card heading="Moje oceny vs ocena ogółu" subtitle="Średnie TMDB (vote_average) tylko przy ≥ 50 głosach"
-    [option]="histOption()" [table]="histTable()" />
-  <ks-chart-card heading="Ja vs TMDB" [subtitle]="correlation() !== undefined ? 'Korelacja Pearsona: ' + avg(correlation()! * 1) : undefined"
-    [option]="scatterOption()" [table]="scatterTable()" height="340px" [empty]="points().length === 0" />
+  <ks-chart-card heading="Co inni sądzą o tytułach, którym dajesz…"
+    subtitle="Dla każdej Twojej oceny: średnia TMDB tych samych tytułów. Słupek nad linią = inni oceniają wyżej niż Ty."
+    [option]="byMineOption()" [table]="byMineTable()" height="320px" [empty]="points().length === 0" />
+
+  <ks-chart-card heading="Surowość w czasie"
+    subtitle="Rok wystawienia oceny. Różnica względem TMDB nie zależy od tego, czy oglądasz lepsze czy gorsze tytuły."
+    [option]="harshnessOption()" [table]="harshnessTable()" height="320px" [empty]="harshness().length < 2"
+    emptyText="Za mało ocen z datą, żeby pokazać zmianę w czasie.">
+    @if (harshnessVerdict()) {
+      <p class="text-sm mt-3"><strong>{{ harshnessVerdict() }}</strong></p>
+    }
+    <p class="text-xs text-ks-muted mt-1">
+      Lata z mniej niż 10 ocenami są pominięte. Jeśli przy zakładaniu konta stare oceny były dodawane hurtem, pierwszy rok obejmuje je wszystkie.
+    </p>
+  </ks-chart-card>
 </div>
 
-<section class="grid gap-4 lg:grid-cols-2 mb-6" aria-label="Rozjazdy">
+<section class="grid gap-4 lg:grid-cols-2 mb-6" aria-label="Największe różnice">
   @for (list of [
-    { title: 'Bardziej mi się podobało niż innym', rows: div().likedMore },
-    { title: 'Mniej mi się podobało niż innym', rows: div().likedLess }
+    { title: 'Podobało mi się bardziej niż innym', rows: div().likedMore },
+    { title: 'Podobało mi się mniej niż innym', rows: div().likedLess }
   ]; track list.title) {
     <div class="ks-card p-4">
       <h2 class="font-display text-xl uppercase mb-3">{{ list.title }}</h2>
@@ -27,7 +65,7 @@
             <span class="flex-1 truncate">{{ r.title }}</span>
             <span class="tabular text-ks-muted">TMDB {{ avg(r.public) }}</span>
             <span class="tabular w-12 text-right" [class.text-ks-positive]="r.diff > 0" [class.text-ks-negative]="r.diff < 0">
-              {{ r.diff > 0 ? '+' : '' }}{{ avg(r.diff) }}
+              {{ signed(r.diff) }}
             </span>
           </li>
         } @empty {
@@ -45,10 +83,10 @@
       <p class="mb-3">Twój gust jest najbliższy: <strong class="text-ks-accent">{{ critics().closest }}</strong></p>
     }
     <table class="ks-table">
-      <thead><tr><th scope="col">Źródło</th><th scope="col">Tytuły</th><th scope="col">Korelacja</th></tr></thead>
+      <thead><tr><th scope="col">Źródło</th><th scope="col">Tytuły</th><th scope="col">Zgodność</th></tr></thead>
       <tbody>
         @for (s of critics().sources; track s.key) {
-          <tr><td>{{ s.label }}</td><td>{{ s.n }}</td><td>{{ s.r === undefined ? 'za mało danych' : avg(s.r) }}</td></tr>
+          <tr><td>{{ s.label }}</td><td>{{ s.n }}</td><td>{{ s.r === undefined ? 'za mało danych' : s.label2 + ' (r = ' + avg(s.r) + ')' }}</td></tr>
         }
       </tbody>
     </table>
