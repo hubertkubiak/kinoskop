@@ -38,6 +38,9 @@ Poniżej lista z wstępnej implementacji (2026-11-18). SPEC.md zmieniany tylko p
 - 2026-11-18: import plików CSV z innych narzędzi (format Letterboxd, np. Filmweb2Letterboxd) jako druga ścieżka
   obok skryptu – SPEC §4, §5.1, §5.4, §14.1. Demo zostaje pod przyciskiem „Zobacz demo”, wyłącznie jako pokaz
   możliwości. Filmatyk nieobsługiwany (projekt martwy od 2020, plik zawiera sesję logowania).
+- 2026-11-19: skrypt pobiera tytuł i rok dla tytułów nieznanych Wikidata (`TITLE_INFO_MODE='missing'`) – SPEC §5.3,
+  §14.1. Strona „Oceny” przepisana prostym językiem + „Surowość w czasie” (§7.3). „Mapa gustu” (graf) zastąpiona
+  listami „Twój gust” (§7.8, ADR 0002). TMDB 20 req/s (§8.2).
 
 ## Znane ograniczenia wstępnej wersji
 

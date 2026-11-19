@@ -16,7 +16,7 @@ export const NAV_ITEMS: NavItem[] = [
   { path: '/epoki', label: 'Czas i epoki', icon: 'eras' },
   { path: '/tworcy', label: 'Twórcy', icon: 'people' },
   { path: '/nagrody', label: 'Nagrody', icon: 'awards', primary: true },
-  { path: '/mapa-gustu', label: 'Mapa gustu', icon: 'graph' },
+  { path: '/gust', label: 'Twój gust', icon: 'graph' },
   { path: '/chce-zobaczyc', label: 'Chcę zobaczyć', icon: 'bookmark' },
   { path: '/weryfikacja', label: 'Weryfikacja', icon: 'verify' },
 ];

@@ -1,6 +1,6 @@
 # ADR 0001: ngDiagram dla Mapy gustu i Sieci twórcy
 
-- Status: przyjęta (wstępnie, do oceny wydajności na prawdziwym profilu)
+- Status: zastąpiona przez ADR 0002 (2026-11-19)
 - Data: 2026-11-18
 
 ## Kontekst

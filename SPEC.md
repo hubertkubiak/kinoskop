@@ -84,7 +84,6 @@ Uzasadnienie wyboru Nx: autor zna Nx komercyjnie, a współdzielone `libs/shared
 | Style | **Tailwind CSS 4** + CSS custom properties (tokeny) | szybkie, spójne stylowanie, łatwy motyw |
 | Prymitywy UI | **Angular CDK** (Overlay, A11y, ScrollingModule/virtual scroll, DragDrop dla strefy importu) | dostępność i virtual scroll bez ciężkiego frameworka UI |
 | Wykresy | **Apache ECharts** przez **ngx-echarts**, import z `echarts/core` (tree-shaking) | słupki, histogramy, treemapa, mapa świata, heatmapa, oś czasu |
-| Grafy | **ngDiagram** (`ng-diagram`) | tylko widoki grafowe: Mapa gustu i Sieć twórcy (sekcja 7.8). Wymaga Angular 18+; sprawdź zgodność z 22 w peer deps |
 | Stan sesji | **Dexie.js** (IndexedDB) | dane mogą mieć kilka MB, więc sessionStorage się nie nadaje |
 | Walidacja | **Zod** (współdzielone schematy) | walidacja pliku importu, odpowiedzi API i zewnętrznych źródeł |
 | Ikony | **lucide-angular** | spójne, lekkie ikony |
@@ -346,7 +345,7 @@ Wszystkie porównania tylko dla tytułów z średnią TMDB (`vote_average`) przy
 ### 7.6 Twórcy
 
 - ranking reżyserów i aktorów: liczba obejrzanych tytułów, średnia ocena, min. N tytułów (konfigurowalne, domyślnie 3),
-- karta twórcy (panel boczny CDK Overlay): zdjęcie z TMDB, narodowość, obejrzane tytuły z ocenami, nieobejrzane najwyżej oceniane tytuły tego twórcy (z TMDB), przycisk „Pokaż sieć twórcy” (7.8).
+- karta twórcy (panel boczny CDK Overlay): zdjęcie z TMDB, narodowość, obejrzane tytuły z ocenami, nieobejrzane najwyżej oceniane tytuły tego twórcy (z TMDB), przycisk „Pokaż współpracowników” (7.8).
 
 ### 7.7 Nagrody
 
@@ -372,20 +371,14 @@ Zapytania: zwycięzcy przez P166 z kwalifikatorem daty P585 na elemencie dzieła
    Wizualizacja: poziome słupki delty (dodatnie/ujemne w dwóch kolorach) z adnotacją `n`.
 3. **Rekomendacje**: nieobejrzani laureaci 3 najbardziej zgodnych nagród, posortowani wg (zgodność nagrody × dopasowanie do Twoich top gatunków), z informacją **gdzie obejrzeć w Polsce** (TMDB watch providers) i znacznikiem, jeśli tytuł jest już na liście „chcę zobaczyć”.
 
-### 7.8 Mapa gustu (ngDiagram)
+### 7.8 Twój gust
 
-ngDiagram jest użyty tylko tutaj, bo to jedyne miejsce, w którym interaktywny graf węzłów daje coś, czego nie da wykres.
+Decyzja autora 2026-11-19: graf ngDiagram („Mapa gustu”) był nieczytelny i nie odpowiadał na żadne pytanie – zastąpiony listami (`docs/adr/0002`). Stara ścieżka `/mapa-gustu` przekierowuje na `/gust`.
 
-- **Mapa gustu**: węzeł centralny „Ty” → węzły gatunków → najczęstsi reżyserzy i aktorzy w obrębie gatunku → (po rozwinięciu) tytuły.
-  - węzły jako komponenty Angulara: gatunek (nazwa, liczba, średnia), osoba (zdjęcie, liczba tytułów), tytuł (mini-plakat, ocena),
-  - rozmiar = liczba tytułów, kolor = średnia ocena (skala sekwencyjna z tokenów),
-  - layout automatyczny przez integrację ELK.js, minimapa, pan/zoom,
-  - domyślnie max ~150 węzłów (top N), rozwijanie na kliknięcie; włącz wirtualizację,
-  - graf respektuje globalne filtry.
-- **Sieć twórcy**: ego-graf wybranego reżysera lub aktora: jego obejrzane tytuły i współpracownicy, z którymi pracował w ≥2 obejrzanych tytułach.
-- Tryb tylko do odczytu (bez edycji krawędzi) — middleware blokuje modyfikacje modelu.
-
-Jeśli w trakcie implementacji ngDiagram okaże się nieprzydatny (wydajność, niezgodność wersji), fallback to wykres `graph` z ECharts. Decyzję zapisz w `docs/adr/`.
+- **„Podnosi / obniża Twoje oceny”**: gatunki, kraje produkcji, reżyserzy i aktorzy, przy których oceniasz wyżej lub niżej niż zwykle; tylko cechy z ≥ 5 ocenionymi tytułami, średnia „ściągnięta” do Twojej średniej (k = 3), próg widoczności ±0,3 pkt; po 6 pozycji na grupę,
+- **„Sprawdzone duety”**: reżyser × aktor z ≥ 3 wspólnymi ocenionymi tytułami, z Twoją średnią i listą tytułów,
+- **„Współpracownicy”** (`/gust?siec=<osoba>`, z karty twórcy i z kliknięcia osoby): osoby z ≥ 2 wspólnymi obejrzanymi tytułami,
+- wszystko respektuje globalne filtry; logika w `libs/stats/src/affinity.ts`.
 
 ### 7.9 Chcę zobaczyć
 
@@ -551,7 +544,7 @@ Dockerfile dla API zostaje w repo dla przenośności (inny hosting, lokalne `doc
 
 ### 9.6 Layout i nawigacja
 
-- desktop: lewy pasek nawigacji (Przegląd, Gatunki, Oceny, Świat, Czas i epoki, Twórcy, Nagrody, Mapa gustu, Chcę zobaczyć, Weryfikacja), górny pasek z filtrami-chipami i przyciskiem „Usuń moje dane”,
+- desktop: lewy pasek nawigacji (Przegląd, Gatunki, Oceny, Świat, Czas i epoki, Twórcy, Nagrody, Twój gust, Chcę zobaczyć, Weryfikacja), górny pasek z filtrami-chipami i przyciskiem „Usuń moje dane”,
 - tablet/telefon: dolna nawigacja z 4 głównymi pozycjami + „Więcej”; filtry w bottom-sheet,
 - wszystkie widoki dostępne z klawiatury; widoczny focus w kolorze akcentu; wykresy z alternatywą tabelaryczną; aria-live dla postępu importu.
 
@@ -559,7 +552,7 @@ Dockerfile dla API zostaje w repo dla przenośności (inny hosting, lokalne `doc
 
 ## 10. Wymagania niefunkcjonalne
 
-- **Wydajność:** pierwsze załadowanie < 250 kB JS gzip dla shell + dashboard (ECharts i ngDiagram przez `@defer`/lazy routes); przeliczenie filtrów < 50 ms dla 3000 pozycji.
+- **Wydajność:** pierwsze załadowanie < 250 kB JS gzip dla shell + dashboard (ECharts przez `@defer`/lazy routes); przeliczenie filtrów < 50 ms dla 3000 pozycji.
 - **Dostępność:** WCAG 2.2 AA; automatyczne testy axe w Playwright dla głównych widoków.
 - **Prywatność:** zero analityki i ciasteczek śledzących; jedno cookie sesyjne-znacznik (sekcja 6), niezbędne technicznie; strona „Prywatność” opisująca przepływ danych prostym językiem: co zostaje w przeglądarce, co trafia na serwer (identyfikatory i tytuły), że hosting zapisuje standardowe logi z adresami IP, że klucz AI trafia wyłącznie do wybranego dostawcy. Przed publicznym startem autor powinien skonsultować treść polityki prywatności (RODO) ze specjalistą.
 - **Bezpieczeństwo:** ścisła CSP (patrz 7.11), `@fastify/helmet` w API, brak `innerHTML` z danych zewnętrznych, zależności skanowane w CI (`pnpm audit`).
@@ -596,9 +589,9 @@ Dockerfile dla API zostaje w repo dla przenośności (inny hosting, lokalne `doc
 - Konfiguracja nagród ze zweryfikowanymi Q-ID, job odświeżania, `/api/awards`, oś czasu, ranking zgodności, rekomendacje.
 - ✅ Dla co najmniej Oscara (najlepszy film) i Złotej Palmy lista laureatów z ostatnich 20 lat jest kompletna (test porównuje z listą referencyjną w fixture).
 
-### Faza 5: Mapa gustu
-- ngDiagram: Mapa gustu + Sieć twórcy, ADR z decyzją.
-- ✅ Graf 150 węzłów renderuje się i jest płynny (pan/zoom) na przeciętnym laptopie; respektuje filtry.
+### Faza 5: Twój gust
+- Listy „podnosi / obniża Twoje oceny”, duety, współpracownicy (pierwotnie graf ngDiagram – zastąpiony, ADR 0002).
+- ✅ Wyniki zgodne z ręcznie policzonymi na fixture'ach; respektują filtry.
 
 ### Faza 6: Epoki przez AI (BYOK)
 - Adaptery Anthropic, OpenRouter i Gemini; panel ustawień AI z instrukcją zdobycia klucza; batch, postęp, wznawianie; CSP.
@@ -714,7 +707,7 @@ Mimo braku kont aplikacja przetwarza dane osobowe: lista ocenionych tytułów w 
 | IGDB | niekomercyjnie, atrybucja | O aplikacji + przy danych gier |
 | Wikidata | CC0 | atrybucja dobrowolna, dodajemy |
 | OMDb | warunki klucza | O aplikacji |
-| ECharts, ngDiagram | Apache 2.0 | plik `THIRD_PARTY_LICENSES` generowany w buildzie |
+| ECharts | Apache 2.0 | plik `THIRD_PARTY_LICENSES` generowany w buildzie |
 | Fonty | SIL OFL | jw. |
 | GeoJSON mapy świata | sprawdzić licencję wybranego pliku (np. Natural Earth: domena publiczna) | źródło w `THIRD_PARTY_LICENSES` |
 | Dostawcy AI | regulaminy dostawców akceptuje użytkownik | informacja w panelu AI |

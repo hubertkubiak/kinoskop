@@ -10,4 +10,4 @@ export * from './time';
 export * from './people';
 export * from './taste';
 export * from './awards';
-export * from './graph';
+export * from './affinity';

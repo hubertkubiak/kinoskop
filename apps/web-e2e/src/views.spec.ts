@@ -2,7 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { mockApi, openDemo } from './support';
 
-const VIEWS = ['przeglad', 'gatunki', 'oceny', 'swiat', 'epoki', 'tworcy', 'nagrody', 'mapa-gustu', 'chce-zobaczyc', 'weryfikacja'];
+const VIEWS = ['przeglad', 'gatunki', 'oceny', 'swiat', 'epoki', 'tworcy', 'nagrody', 'gust', 'chce-zobaczyc', 'weryfikacja'];
 
 test('demo opens every view without errors', async ({ page }) => {
   const errors: string[] = [];
@@ -32,7 +32,7 @@ test('charts offer a table view', async ({ page }) => {
   await expect(page.locator('table').first()).toBeVisible();
 });
 
-for (const v of ['start', 'przeglad', 'gatunki', 'epoki', 'o-aplikacji']) {
+for (const v of ['start', 'przeglad', 'gatunki', 'oceny', 'epoki', 'gust', 'o-aplikacji']) {
   test(`axe: no serious accessibility violations on /${v}`, async ({ page }) => {
     await mockApi(page);
     if (v !== 'start') await openDemo(page);

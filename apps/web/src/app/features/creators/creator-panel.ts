@@ -25,7 +25,7 @@ import { Ticket } from '../../ui/ticket';
       </div>
       <button type="button" class="ks-btn !p-1.5" aria-label="Zamknij" (click)="ref.close()"><ks-icon name="close" /></button>
     </div>
-    <button type="button" class="ks-btn text-sm mb-4" (click)="network()"><ks-icon name="graph" [size]="16" /> Pokaż sieć twórcy</button>
+    <button type="button" class="ks-btn text-sm mb-4" (click)="network()"><ks-icon name="graph" [size]="16" /> Pokaż współpracowników</button>
     <h3 class="font-semibold mb-2">Obejrzane tytuły</h3>
     <ul class="space-y-1.5">
       @for (t of titles(); track t.key) {
@@ -50,6 +50,6 @@ export class CreatorPanel {
 
   network(): void {
     this.ref.close();
-    void this.router.navigate(['/mapa-gustu'], { queryParams: { siec: this.row.key }, queryParamsHandling: 'merge' });
+    void this.router.navigate(['/gust'], { queryParams: { siec: this.row.key }, queryParamsHandling: 'merge' });
   }
 }

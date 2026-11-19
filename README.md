@@ -22,7 +22,6 @@
 ![Nx](https://img.shields.io/badge/Nx-143055?style=for-the-badge&logo=nx&logoColor=white)
 ![Fastify](https://img.shields.io/badge/Fastify-000000?style=for-the-badge&logo=fastify&logoColor=white)
 ![Apache ECharts](https://img.shields.io/badge/ECharts-AA344D?style=for-the-badge&logo=apacheecharts&logoColor=white)
-![ngDiagram](https://img.shields.io/badge/ngDiagram-1F2937?style=for-the-badge&logo=angular&logoColor=white)
 ![Zod](https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white)
 ![Dexie](https://img.shields.io/badge/Dexie.js-IndexedDB-221F17?style=for-the-badge)
 ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge)
@@ -52,7 +51,7 @@
 | 🏛️ **Epoki historyczne** | w jakich czasach dzieją się filmy, które oglądasz i które oceniasz najwyżej |
 | 🏆 **Nagrody na osi czasu** | Oscary, Cannes, Berlinale, Wenecja, BAFTA, Złote Globy, Orły, Gdynia, Emmy, The Game Awards… |
 | 🎯 **Zgodność nagród z gustem** | które nagrody najlepiej przewidują, co Ci się spodoba, plus rekomendacje z informacją, gdzie obejrzeć w Polsce |
-| 🕸️ **Mapa gustu** | interaktywny graf: gatunki → twórcy → tytuły |
+| 🧭 **Twój gust** | co podnosi i obniża Twoje oceny, sprawdzone duety reżyser × aktor, współpracownicy twórców |
 | 🔒 **Prywatnie** | bez kont; Twoje oceny zostają w przeglądarce i znikają po jej zamknięciu |
 
 <!-- Zrzuty ekranu: docs/screenshots/*.png (faza 7) -->

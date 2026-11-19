@@ -64,11 +64,13 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./features/awards/awards-page').then((m) => m.AwardsPage),
       },
       {
-        path: 'mapa-gustu',
-        title: 'Mapa gustu – Kinoskop',
+        path: 'gust',
+        title: 'Twój gust – Kinoskop',
         canActivate: [requireData],
-        loadComponent: () => import('./features/taste-map/taste-map-page').then((m) => m.TasteMapPage),
+        loadComponent: () => import('./features/taste/taste-page').then((m) => m.TastePage),
       },
+      // Former graph view (docs/adr/0002); old links keep working.
+      { path: 'mapa-gustu', redirectTo: 'gust' },
       {
         path: 'chce-zobaczyc',
         title: 'Chcę zobaczyć – Kinoskop',

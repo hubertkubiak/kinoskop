@@ -1,6 +1,6 @@
 export const IMPORT_STRINGS = {
   title: 'Zaimportuj swoje dane',
-  lead: 'Kinoskop pokaże statystyki, mapę gustu i nagrody na podstawie Twoich ocen z Filmwebu. Dane zostają w tej przeglądarce.',
+  lead: 'Kinoskop pokaże statystyki, Twój gust i nagrody na podstawie Twoich ocen z Filmwebu. Dane zostają w tej przeglądarce.',
   demo: 'Zobacz demo',
   demoHint: 'Fikcyjny profil z przykładowymi ocenami – bez importu.',
   legal:
