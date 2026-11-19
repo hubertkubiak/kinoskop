@@ -22,16 +22,22 @@ describe('knownInWikidata', () => {
     const ids = Array.from({ length: WIKIDATA_BATCH + 1 }, (_, i) => i + 1);
     const p = knownInWikidata(ids);
     await vi.runAllTimersAsync();
-    expect([...(await p)]).toEqual([5]);
+    expect(await p).toEqual({ known: new Set([5]), failed: [] });
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  it('throws after repeated failures so the caller can fall back', async () => {
+  it('keeps the batches that worked and reports the failed ones instead of giving up', async () => {
     vi.useFakeTimers();
-    vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 503, headers: new Headers() }) as Response));
-    const p = knownInWikidata([1]);
-    const check = expect(p).rejects.toThrow('Wikidata');
+    let call = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => (++call === 1 ? sparql(['1']) : ({ ok: false, status: 429, headers: new Headers({ 'retry-after': '1' }) }) as Response)),
+    );
+    const ids = Array.from({ length: WIKIDATA_BATCH + 2 }, (_, i) => i + 1);
+    const p = knownInWikidata(ids);
     await vi.runAllTimersAsync();
-    await check;
+    const r = await p;
+    expect([...r.known]).toEqual([1]);
+    expect(r.failed).toEqual([WIKIDATA_BATCH + 1, WIKIDATA_BATCH + 2]);
   });
 });

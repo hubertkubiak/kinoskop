@@ -10,7 +10,7 @@ export const IMPORT_STRINGS = {
   showCode: 'Pokaż pełny kod skryptu',
   safetyTitle: 'Czy to bezpieczne?',
   safety:
-    'Skrypt tylko czyta Twoje dane z Filmwebu (zapytania GET), niczego nie zmienia i nigdzie niczego nie wysyła; jedynie zapisuje plik na Twoim dysku. Kod jest jawny powyżej. Ogólna zasada: nigdy nie wklejaj w konsolę kodu, którego nie rozumiesz albo którego źródłu nie ufasz.',
+    'Skrypt tylko czyta Twoje dane z Filmwebu (zapytania GET), niczego nie zmienia i nigdzie niczego nie wysyła; jedynie zapisuje plik na Twoim dysku. Żeby kolejny import był szybszy, zapamiętuje w pamięci przeglądarki (na filmweb.pl) tytuły pobrane do dopasowania. Kod jest jawny powyżej. Ogólna zasada: nigdy nie wklejaj w konsolę kodu, którego nie rozumiesz albo którego źródłu nie ufasz.',
   drop: 'Przeciągnij tutaj plik kinoskop-eksport-….json albo pliki CSV',
   pick: 'albo wybierz pliki',
   csvTitle: 'Masz już eksport z innego narzędzia?',
@@ -27,7 +27,8 @@ export const IMPORT_STRINGS = {
   problems: [
     ['„Kinoskop: nie jesteś zalogowany”', 'Zaloguj się na filmweb.pl w tej samej przeglądarce i uruchom skrypt ponownie.'],
     ['Wkleiłem skrypt i nic się nie dzieje', 'Po wklejeniu w prawym dolnym rogu strony pojawia się panel „Kinoskop: …” z postępem. Jeśli go nie ma: sprawdź, czy wkleiłeś cały skrypt i nacisnąłeś Enter, oraz czy przeglądarka nie czeka na wpisanie „allow pasting”. Uruchamiaj skrypt na www.filmweb.pl/robots.txt – strona główna potrafi się przeładować i wyczyścić konsolę.'],
-    ['Ile to trwa?', 'Same listy ocen to kilka minut. Potem skrypt sprawdza w Wikidata, które tytuły da się dopasować po identyfikatorze, a dla pozostałych pobiera tytuł i rok – przy kilku tysiącach ocen to nawet 30–40 minut. Panel pokazuje szacowany czas. Trzymaj kartę na wierzchu (może być w osobnym oknie): karty w tle przeglądarka mocno spowalnia.'],
+    ['Ile to trwa?', 'Po kilku minutach skrypt zapisuje część 1 (kinoskop-eksport-…-czesc-1.json) – wczytaj ją od razu, statystyki będą gotowe. Potem w tej samej karcie pobiera tytuły pozycji, których nie znaleźliśmy w Wikidata (przy kilku tysiącach ocen ok. pół godziny), i zapisuje część 2 – przeciągnij ją tutaj, uzupełni część 1 bez utraty danych. Kolejne importy są szybkie, bo skrypt pamięta pobrane tytuły. Trzymaj kartę na wierzchu (może być w osobnym oknie): karty w tle przeglądarka mocno spowalnia.'],
+    ['Jak wyczyścić pamięć skryptu?', 'Na filmweb.pl w konsoli wpisz: localStorage.removeItem(\'kinoskop-titles-v1\')'],
     ['Skrypt przerwany (zamknięta karta, błąd sieci)', 'Uruchom go ponownie na tej samej karcie – postęp jest wznawiany.'],
     ['„Za dużo zapytań”', 'Skrypt sam zwalnia; przy uporczywych błędach spróbuj za kilka minut.'],
     ['Telefon lub tablet', 'Import działa tylko na komputerze, przeglądanie statystyk również na telefonie.'],

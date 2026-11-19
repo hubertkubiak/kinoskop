@@ -227,7 +227,7 @@ Do instrukcji dołącz zrzuty ekranu w `docs/import/` (placeholdery w fazie 1, p
 ### 5.3 Skrypt importu (`libs/import-script`)
 
 Wymagania:
-- Czysty TypeScript → esbuild → **jedna IIFE, ES2020, bez zależności, niezminifikowana** (wersja do konsoli), poniżej ~300 linii, z komentarzami po polsku. Osobny build zminifikowany dla bookmarkletu.
+- Czysty TypeScript → esbuild → **jedna IIFE, ES2020, bez zależności, niezminifikowana** (wersja do konsoli), czytelna (obecnie ok. 530 linii po zbudowaniu, z komentarzami po polsku). Osobny build zminifikowany dla bookmarkletu.
 - Wersja skryptu i `schemaVersion` wbudowane w plik.
 - Sprawdza `location.hostname === 'www.filmweb.pl'`; w przeciwnym razie wypisuje komunikat i kończy.
 - **Wyłącznie GET**, `credentials: 'include'`, same-origin.
@@ -238,6 +238,10 @@ Wymagania:
 - **Tempo jak u człowieka:** zapytania **sekwencyjnie** (jedno naraz), 400–900 ms przerwy z jitterem, timeout 20 s na zapytanie, retry z exponential backoff przy 5xx/błędzie sieci/timeoucie (max 3 próby), przy 429 skrypt kończy się z prośbą o ponowienie później zamiast przyspieszać. Cel: obciążenie porównywalne z przeglądaniem własnych list ocen.
 - **Bez szczegółów bazy Filmwebu:** skrypt **nie** pobiera gatunków, krajów, twórców, opisów, ocen ogółu ani histogramów (sekcja 14.1). Te dane pochodzą z TMDB, IGDB i Wikidata.
 - **Wznawianie:** postęp trzymany w `sessionStorage` karty Filmwebu pod kluczem `kinoskop-progress-v1`; ponowne uruchomienie pomija pobrane strony. Klucz usuwany po sukcesie.
+- **Pamięć tytułów między importami** (decyzja autora 2026-11-19): pobrane tytuł/rok oraz ID znane Wikidata trafiają do `localStorage` strony filmweb.pl (klucz `kinoskop-titles-v1`, tylko przeglądarka użytkownika). Kolejny import pobiera info wyłącznie dla nowych pozycji. Czyszczenie: `localStorage.removeItem('kinoskop-titles-v1')` w konsoli.
+- **Import w dwóch plikach** (ADR 0003): gdy do pobrania jest ≥ 100 tytułów, skrypt zaraz po listach zapisuje `kinoskop-eksport-RRRR-MM-DD-czesc-1.json` (`part: 'base'`) – aplikacja liczy z niego statystyki i dopasowuje to, co zna Wikidata. Na końcu zapisuje pełny plik (`part: 'full'`); aplikacja **scala** go z wczytanymi danymi tego samego użytkownika (zachowuje wzbogacenia, ręczne dopasowania i epoki AI), więc dopasowuje już tylko brakujące.
+- **Wikidata:** partia, której Wikidata nie sprawdzi mimo ponowień (429 z Retry-After, max 6 prób), nie przekreśla pozostałych – tylko jej pozycje idą do pobrania info.
+- **Karta w tle:** Chrome spowalnia timery w ukrytych kartach (developer.chrome.com/blog/timer-throttling-in-chrome-88). Skrypt zmienia wtedy tytuł karty i panel („⏸ wróć do tej karty”), a szacowany czas liczy tylko z zapytań przy widocznej karcie i pokazuje średni czas na tytuł.
 - Czytelny postęp w konsoli i w panelu na stronie: po każdej stronie listy, co 10 tytułów z szacowanym czasem do końca, ostrzeżenie o spowalnianiu kart w tle, na końcu podsumowanie (liczby per typ, czas, liczba błędów).
 - Na końcu: `Blob` → `URL.createObjectURL` → kliknięcie `<a download>`. Walidacja wyniku tym samym schematem Zod nie jest możliwa bez zależności, więc skrypt robi minimalne sanity checks, a pełną walidację robi aplikacja.
 
@@ -665,7 +669,7 @@ Regulamin Filmwebu zakazuje m.in.:
 Konsekwencją naruszenia może być zablokowanie lub usunięcie konta użytkownika (art. 4 ust. 15, art. 7 ust. 3). Ryzyko dotyczy więc **przede wszystkim użytkowników**, a pośrednio autora, który dostarcza narzędzie.
 
 **Decyzje ograniczające ryzyko:**
-1. **Import tylko danych własnych użytkownika** (jego oceny, daty, ulubione, listy). To dane, które sam wytworzył; użytkownik ma też prawo do ich przenoszenia (art. 20 RODO). Skrypt **nie** pobiera metadanych bazy Filmwebu (gatunki, kraje, twórcy, opisy, oceny ogółu), więc nie ma ekstrakcji zawartości bazy. **Jedyny wyjątek** (decyzja autora 2026-11-19): tytuł, tytuł oryginalny i rok pozycji z list użytkownika, których nie da się dopasować przez Wikidata – wyłącznie jako klucz do wyszukania w TMDB/IGDB (5.3 p. 3); bez tego ok. połowa ocen zostaje niedopasowana.
+1. **Import tylko danych własnych użytkownika** (jego oceny, daty, ulubione, listy). To dane, które sam wytworzył; użytkownik ma też prawo do ich przenoszenia (art. 20 RODO). Skrypt **nie** pobiera metadanych bazy Filmwebu (gatunki, kraje, twórcy, opisy, oceny ogółu), więc nie ma ekstrakcji zawartości bazy. **Jedyny wyjątek** (decyzja autora 2026-11-19): tytuł, tytuł oryginalny i rok pozycji z list użytkownika, których nie da się dopasować przez Wikidata – wyłącznie jako klucz do wyszukania w TMDB/IGDB (5.3 p. 3); bez tego ok. połowa ocen zostaje niedopasowana. Te trzy pola są zapamiętywane tylko w przeglądarce użytkownika (`localStorage` filmweb.pl), żeby kolejne importy nie pobierały ich ponownie.
 2. **Tempo jak u człowieka:** zapytania sekwencyjne z przerwami, od kilkudziesięciu (same listy) do kilku tysięcy zapytań przy dużym profilu z wieloma tytułami nieznanymi Wikidata (ok. 0,7 s na zapytanie; import wznawialny) (5.3), uruchamiane ręcznie przez zalogowanego użytkownika w jego własnej przeglądarce.
 3. **Backend nigdy nie łączy się z Filmwebem** i nie przechowuje żadnych danych pochodzących z Filmwebu poza mapowaniem `filmwebId → tmdbId/wikidataId` (identyfikatory; mapowanie i tak jest publicznie dostępne w Wikidata, P5032, CC0).
 4. **Brak hotlinkowania** grafik Filmwebu; plakaty z TMDB/IGDB.

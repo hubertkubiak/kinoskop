@@ -3,7 +3,16 @@
 // (zapytania GET, jedno naraz, z przerwami), a na końcu zapisuje plik JSON na Twoim dysku.
 // Niczego nie zmienia na Filmwebie i niczego nigdzie nie wysyła.
 
-import { ALLOWED_HOST, MAX_PAGES, PROGRESS_KEY, SCHEMA_VERSION, SCRIPT_VERSION, TITLE_INFO_MODE } from './config';
+import {
+  ALLOWED_HOST,
+  BASE_FILE_MIN_TITLES,
+  MAX_PAGES,
+  PROGRESS_KEY,
+  SCHEMA_VERSION,
+  SCRIPT_VERSION,
+  TITLE_CACHE_KEY,
+  TITLE_INFO_MODE,
+} from './config';
 import { ENDPOINTS, FW_LISTS, type FwKind, type FwPathKind } from './endpoints';
 import { BadRequestError, getJson, getRequestCount, NotLoggedInError, TooManyRequestsError } from './http';
 import {
@@ -16,6 +25,8 @@ import {
   type LoggedUser,
   type RawItem,
 } from './mappers';
+import { EtaMeter, fmtMinutes } from './eta';
+import { TitleCache } from './title-cache';
 import { knownInWikidata } from './wikidata';
 
 const KINDS: FwKind[] = ['film', 'serial', 'game'];
@@ -37,10 +48,14 @@ function panel(): HTMLElement {
   return el;
 }
 
+let lastMsg = '';
+const HIDDEN_NOTE = ' ⏸ Karta jest w tle – przeglądarka spowalnia import. Wróć do niej (może być w osobnym oknie).';
+
 const log = (msg: string) => {
+  lastMsg = msg;
   console.log(`%cKinoskop%c ${msg}`, STYLE, '');
   try {
-    panel().textContent = `Kinoskop: ${msg}`;
+    panel().textContent = `Kinoskop: ${msg}${document.visibilityState === 'hidden' ? HIDDEN_NOTE : ''}`;
   } catch {
     /* brak DOM – zostaje sama konsola */
   }
@@ -53,12 +68,19 @@ const keepAlive = (e: BeforeUnloadEvent) => {
 };
 
 /**
- * Chrome spowalnia timery w kartach w tle (po kilku minutach nawet do 1 na minutę), a skrypt robi
- * przerwy między zapytaniami właśnie timerami. Ostrzegamy, gdy karta przestaje być widoczna.
+ * Chrome spowalnia timery w kartach w tle (sprawdza je raz na sekundę, po 5 min nawet raz na minutę –
+ * developer.chrome.com/blog/timer-throttling-in-chrome-88), a skrypt robi przerwy właśnie timerami.
+ * Gdy karta znika z widoku, zmieniamy jej tytuł i panel, żeby było widać, że import zwolnił.
  */
-const onHidden = () => {
-  if (document.visibilityState === 'hidden')
-    console.warn('Kinoskop: karta w tle – przeglądarka może spowolnić import. Wróć do niej albo przenieś ją do osobnego okna.');
+let originalTitle = '';
+const onVisibility = () => {
+  if (document.visibilityState === 'hidden') {
+    originalTitle = document.title;
+    document.title = '⏸ Kinoskop – wróć do tej karty';
+  } else if (originalTitle) {
+    document.title = originalTitle;
+  }
+  log(lastMsg);
 };
 
 /** Stan zapisywany po każdej stronie, żeby ponowne uruchomienie pominęło pobrane dane. */
@@ -120,66 +142,118 @@ async function fetchPages(
   }
 }
 
-/** Filmy i seriale bez tytułu, które Wikidata zna po Filmweb ID (wynik zapamiętany w postępie). */
-async function wikidataKnown(p: Progress): Promise<Set<number>> {
-  if (p.wdKnown) return new Set(p.wdKnown);
-  const ids = [...new Set(p.items.filter((it) => it.kind !== 'game' && !it.title).map((it) => it.filmwebId))];
-  try {
-    const known = await knownInWikidata(ids, (done, total) => log(`sprawdzam tytuły w Wikidata: ${done}/${total}…`));
-    p.wdKnown = [...known];
-    saveProgress(p);
-    log(`Wikidata zna ${known.size} z ${ids.length} filmów i seriali; dla pozostałych pobiorę tytuł i rok.`);
-    return known;
-  } catch (e) {
-    // Bez Wikidata nie wiemy, czego brakuje – pobieramy info dla wszystkich (wolniej, ale nic nie ginie).
-    console.warn('Kinoskop:', (e as Error).message);
-    log('Wikidata nie odpowiada – pobiorę tytuł i rok dla wszystkich pozycji (to potrwa dłużej).');
-    return new Set();
+/** Uzupełnia pozycje tytułami zapamiętanymi z poprzednich importów (bez zapytań). */
+function applyCache(p: Progress, cache: TitleCache): number {
+  let n = 0;
+  for (const it of p.items) {
+    if (it.title) {
+      // Tytuł pobrany wcześniej w tym samym (wznowionym) imporcie – zapamiętujemy go na przyszłość.
+      if (!cache.get(it.kind, it.filmwebId)) cache.set(it.kind, it.filmwebId, { title: it.title, originalTitle: it.originalTitle, year: it.year });
+      continue;
+    }
+    if (p.done.includes(`info:${it.kind}:${it.filmwebId}`)) continue;
+    const info = cache.get(it.kind, it.filmwebId);
+    if (info) {
+      Object.assign(it, info);
+      p.done.push(`info:${it.kind}:${it.filmwebId}`);
+      n++;
+    }
   }
+  return n;
 }
 
-const fmtMinutes = (ms: number) => (ms < 90_000 ? 'ok. 1 min' : `ok. ${Math.round(ms / 60_000)} min`);
+/** Filmy i seriale bez tytułu, które Wikidata zna po Filmweb ID (wynik zapamiętany w postępie i w pamięci skryptu). */
+async function wikidataKnown(p: Progress, cache: TitleCache): Promise<Set<number>> {
+  if (p.wdKnown) return new Set(p.wdKnown);
+  const candidates = [
+    ...new Set(
+      p.items
+        .filter((it) => it.kind !== 'game' && !it.title && !p.done.includes(`info:${it.kind}:${it.filmwebId}`))
+        .map((it) => it.filmwebId),
+    ),
+  ];
+  const fromCache = candidates.filter((id) => cache.knownInWikidata(id));
+  const ask = candidates.filter((id) => !cache.knownInWikidata(id));
+  // Partie, których Wikidata nie sprawdziła mimo ponowień, nie są „znane” – dla nich pobierzemy info.
+  const asked = await knownInWikidata(ask, (done, total) => log(`sprawdzam tytuły w Wikidata: ${done}/${total}…`));
+  const known = new Set([...fromCache, ...asked.known]);
+  cache.addWikidata(known);
+  cache.save();
+  p.wdKnown = [...known];
+  saveProgress(p);
+  log(
+    `Wikidata zna ${known.size} z ${candidates.length} filmów i seriali bez tytułu; dla pozostałych pobiorę tytuł i rok.` +
+      (asked.failed.length ? ` (Wikidata nie odpowiedziała dla ${asked.failed.length} – sprawdzę je na Filmwebie.)` : ''),
+  );
+  return known;
+}
 
-/** Dociąga tytuł i rok tam, gdzie są potrzebne do dopasowania (patrz TITLE_INFO_MODE). */
-async function fetchTitleInfo(p: Progress): Promise<void> {
-  if (TITLE_INFO_MODE === 'none') return;
-  const known = TITLE_INFO_MODE === 'missing' ? await wikidataKnown(p) : new Set<number>();
+/** Pozycje, dla których trzeba pobrać info tytułu (patrz TITLE_INFO_MODE). */
+async function titleInfoTodo(p: Progress, cache: TitleCache): Promise<RawItem[]> {
+  if (TITLE_INFO_MODE === 'none') return [];
+  const known = TITLE_INFO_MODE === 'missing' ? await wikidataKnown(p, cache) : new Set<number>();
   const needs = (it: RawItem) =>
     !it.title &&
     (it.kind === 'game' || TITLE_INFO_MODE === 'all' || (TITLE_INFO_MODE === 'missing' && !known.has(it.filmwebId)));
-  const todo = p.items.filter((it) => needs(it) && !p.done.includes(`info:${it.kind}:${it.filmwebId}`));
-  const started = Date.now();
+  return p.items.filter((it) => needs(it) && !p.done.includes(`info:${it.kind}:${it.filmwebId}`));
+}
+
+/** Dociąga tytuł i rok dla `todo`; każdy wynik trafia też do pamięci skryptu na kolejne importy. */
+async function fetchTitleInfo(p: Progress, cache: TitleCache, todo: RawItem[]): Promise<void> {
+  const eta = new EtaMeter();
   let n = 0;
   for (const it of todo) {
+    const t0 = Date.now();
+    const visibleAtStart = document.visibilityState === 'visible';
     try {
       const body = await getJson(ENDPOINTS.titleInfo(it.filmwebId));
-      if (body !== null) Object.assign(it, mapTitleInfo(body));
+      const info = body === null ? {} : mapTitleInfo(body);
+      Object.assign(it, info);
+      cache.set(it.kind, it.filmwebId, info);
     } catch (e) {
       if (e instanceof NotLoggedInError || e instanceof TooManyRequestsError) throw e;
       p.errors++;
     }
+    eta.record(Date.now() - t0, visibleAtStart && document.visibilityState === 'visible');
     p.done.push(`info:${it.kind}:${it.filmwebId}`);
     n++;
-    // Zapis co 10 pozycji: sessionStorage przy kilku tysiącach pozycji nie jest darmowy.
+    // Zapis co 10 pozycji: sessionStorage i localStorage przy kilku tysiącach pozycji nie są darmowe.
     if (n % 10 === 0 || n === todo.length) {
       saveProgress(p);
-      const left = ((Date.now() - started) / n) * (todo.length - n);
-      log(`tytuły do dopasowania: ${n}/${todo.length}, zostało ${fmtMinutes(left)}. Nie zamykaj tej karty.`);
+      cache.save();
+      const left = eta.estimate(todo.length - n);
+      const per = eta.estimate(1);
+      log(
+        `tytuły do dopasowania: ${n}/${todo.length}` +
+          (left === undefined || per === undefined ? '' : `, zostało ${fmtMinutes(left)} (${(per / 1000).toFixed(1)} s na tytuł)`) +
+          '. Nie zamykaj tej karty.',
+      );
     }
   }
 }
 
-function download(user: LoggedUser, items: RawItem[]): string {
+/** localStorage bywa zablokowany (tryb prywatny, ustawienia) – wtedy pamięć tytułów po prostu nie działa. */
+function safeLocalStorage(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function download(user: LoggedUser, items: RawItem[], part: 'base' | 'full'): string {
   const now = new Date();
   const file = {
     schemaVersion: SCHEMA_VERSION,
     exportedAt: now.toISOString(),
     source: 'filmweb',
     scriptVersion: SCRIPT_VERSION,
+    part,
     user,
     items,
   };
-  const name = `kinoskop-eksport-${now.toISOString().slice(0, 10)}.json`;
+  const day = now.toISOString().slice(0, 10);
+  const name = part === 'base' ? `kinoskop-eksport-${day}-czesc-1.json` : `kinoskop-eksport-${day}.json`;
   const url = URL.createObjectURL(new Blob([JSON.stringify(file, null, 1)], { type: 'application/json' }));
   const a = document.createElement('a');
   a.href = url;
@@ -208,7 +282,7 @@ export async function run(): Promise<void> {
       '(może być w osobnym oknie) – karty w tle przeglądarka spowalnia.',
   );
   window.addEventListener('beforeunload', keepAlive);
-  document.addEventListener('visibilitychange', onHidden);
+  document.addEventListener('visibilitychange', onVisibility);
   try {
     const user = mapLoggedInfo(await getJson(ENDPOINTS.loggedInfo()));
     const p = loadProgress(user.id);
@@ -217,16 +291,33 @@ export async function run(): Promise<void> {
       await fetchPages(p, 'votes', list, mapVote);
       await fetchPages(p, 'want2see', list, mapWant2see);
     }
-    await fetchTitleInfo(p);
+    const cache = new TitleCache(safeLocalStorage(), TITLE_CACHE_KEY);
+    const reused = applyCache(p, cache);
+    if (reused) log(`z poprzednich importów pamiętam tytuły ${reused} pozycji – nie pobieram ich ponownie.`);
+    const todo = await titleInfoTodo(p, cache);
+    let baseName: string | undefined;
+    if (todo.length >= BASE_FILE_MIN_TITLES) {
+      // Część 1: listy są kompletne, więc aplikacja może już liczyć statystyki; tytuły dojdą w części 2.
+      const base = dedupe(p.items);
+      sanityCheck(base);
+      baseName = download(user, base, 'base');
+      log(
+        `zapisano część 1: ${baseName} – możesz ją już wczytać w Kinoskopie. Teraz pobieram tytuły ${todo.length} pozycji; ` +
+          'na końcu zapiszę część 2 (jeśli przeglądarka zapyta o pobieranie wielu plików, zezwól).',
+      );
+    }
+    await fetchTitleInfo(p, cache, todo);
     const items = dedupe(p.items);
     sanityCheck(items);
-    const name = download(user, items);
+    const name = download(user, items, 'full');
     sessionStorage.removeItem(PROGRESS_KEY);
     const per = KINDS.map((k) => `${k}: ${items.filter((i) => i.kind === k).length}`).join(', ');
     const secs = Math.round((Date.now() - started) / 1000);
     log(
       `gotowe! ${items.length} pozycji (${per}), ${getRequestCount()} zapytań, ${secs} s, błędów: ${p.errors}. ` +
-        `Zapisano plik ${name} – przeciągnij go na stronę Kinoskopu.`,
+        (baseName
+          ? `Zapisano część 2: ${name} – przeciągnij ją na stronę Kinoskopu; uzupełni wczytaną część 1 bez utraty danych.`
+          : `Zapisano plik ${name} – przeciągnij go na stronę Kinoskopu.`),
     );
   } catch (e) {
     if (e instanceof NotLoggedInError) log('nie jesteś zalogowany. Zaloguj się na filmweb.pl i uruchom skrypt ponownie.');
@@ -234,6 +325,7 @@ export async function run(): Promise<void> {
     else log(`przerwano: ${(e as Error).message}. Uruchom ponownie – postęp zostanie wznowiony.`);
   } finally {
     window.removeEventListener('beforeunload', keepAlive);
-    document.removeEventListener('visibilitychange', onHidden);
+    document.removeEventListener('visibilitychange', onVisibility);
+    if (originalTitle && document.visibilityState === 'visible') document.title = originalTitle;
   }
 }

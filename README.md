@@ -71,7 +71,7 @@ Są dwie drogi importu. Obie działają w całości w przeglądarce.
 3. Na karcie Filmwebu otwórz konsolę (`Ctrl+Shift+J` / `Cmd+Option+J`, w Firefoksie `Ctrl+Shift+K`), wpisz `allow pasting`, jeśli przeglądarka o to poprosi, wklej skrypt i naciśnij Enter.
 4. Przeciągnij pobrany plik `kinoskop-eksport-….json` na stronę Kinoskopu.
 
-Przy dużym profilu import trwa do 30–40 minut: dla tytułów, których Wikidata nie zna po identyfikatorze Filmwebu, skrypt pobiera tytuł i rok, żeby dało się je dopasować w TMDB. Trzymaj kartę na wierzchu (może być w osobnym oknie), bo karty w tle przeglądarka spowalnia; przerwany import wznawia się po ponownym uruchomieniu.
+Przy dużym profilu skrypt zapisuje dwa pliki. **Część 1** powstaje po kilku minutach: wczytaj ją od razu, statystyki będą gotowe. Potem skrypt pobiera tytuł i rok pozycji, których Wikidata nie zna po identyfikatorze Filmwebu (u autora ok. 2300 tytułów, ok. pół godziny), i zapisuje **część 2**. Przeciągnięta do Kinoskopu uzupełnia część 1 bez utraty dopasowań. Pobrane tytuły skrypt pamięta w przeglądarce (`localStorage` na filmweb.pl), więc kolejne importy trwają kilka minut. Trzymaj kartę na wierzchu (może być w osobnym oknie), bo karty w tle przeglądarka spowalnia. Przerwany import wznawia się po ponownym uruchomieniu.
 
 Skrypt pobiera tylko **Twoje własne dane** (oceny, daty, listy) zapytaniami GET, w tempie zbliżonym do ręcznego przeglądania, i zapisuje plik na Twoim dysku. Regulamin Filmwebu ogranicza korzystanie z programów automatycznych, więc z importu korzystasz na własną odpowiedzialność. Jego pełny kod jest widoczny w aplikacji przed skopiowaniem. Szczegółowa instrukcja z rozwiązywaniem problemów jest w aplikacji.
 

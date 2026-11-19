@@ -1,7 +1,7 @@
 // Konfiguracja skryptu importu Kinoskopu. Wartości wpisywane na stałe w zbudowany plik.
 
 /** Wersja skryptu (podnoś przy każdej zmianie zachowania). */
-export const SCRIPT_VERSION = '0.3.0';
+export const SCRIPT_VERSION = '0.4.0';
 
 /** Wersja formatu pliku eksportu; musi być równa EXPORT_SCHEMA_VERSION z libs/shared. */
 export const SCHEMA_VERSION = 1;
@@ -23,6 +23,15 @@ export const MAX_PAGES = 400;
 
 /** Klucz postępu w sessionStorage karty Filmwebu (wznawianie po przerwaniu). */
 export const PROGRESS_KEY = 'kinoskop-progress-v1';
+
+/** Klucz pamięci tytułów w localStorage filmweb.pl – kolejny import pobiera info tylko dla nowych ocen. */
+export const TITLE_CACHE_KEY = 'kinoskop-titles-v1';
+
+/**
+ * Od tylu tytułów do pobrania skrypt najpierw zapisuje część 1 (listy bez brakujących tytułów),
+ * żeby nie trzeba było czekać na statystyki. Przy mniejszej liczbie od razu jeden plik.
+ */
+export const BASE_FILE_MIN_TITLES = 100;
 
 /**
  * Kiedy pobierać podstawowe info tytułu (tytuł, rok) do dopasowania:
