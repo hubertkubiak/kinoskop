@@ -86,6 +86,8 @@ export class LibraryStore {
       exportedAt: file.exportedAt,
       importedAt: new Date().toISOString(),
       userName: file.user.name,
+      userId: file.user.id,
+      part: file.part ?? 'full',
     };
     const items: ItemRow[] = file.items.map((i) => ({ ...i, key: itemKey(i) }));
     this.meta.set(meta);
@@ -97,6 +99,52 @@ export class LibraryStore {
       });
     }
     if (enrichments.length) await this.addEnrichments(enrichments);
+  }
+
+  /** Whether `file` is a later export of the user whose import is loaded (merge instead of replace). */
+  isSameUser(file: ExportFile): boolean {
+    const m = this.meta();
+    return m?.mode === 'import' && file.source === 'filmweb' && m.userId !== undefined && m.userId === file.user.id;
+  }
+
+  /**
+   * Merges a later export of the same user (part 2 of a two-part import or a fresh re-import):
+   * items are replaced, while enrichments, manual matches and AI eras of items that are still
+   * present are kept, so only new or still unmatched items need enriching (docs/adr/0003).
+   */
+  async mergeExport(file: ExportFile): Promise<void> {
+    const prev = this.meta();
+    const meta: MetaRow = {
+      id: 'export',
+      mode: 'import',
+      exportedAt: file.exportedAt,
+      importedAt: new Date().toISOString(),
+      userName: file.user.name || prev?.userName || '',
+      userId: file.user.id,
+      part: file.part ?? 'full',
+    };
+    const items: ItemRow[] = file.items.map((i) => ({ ...i, key: itemKey(i) }));
+    const keep = new Set(items.map((i) => i.key));
+    const gone = this.items().filter((i) => !keep.has(i.key)).map((i) => i.key);
+    const drop = <T>(m: ReadonlyMap<string, T>) => new Map([...m].filter(([k]) => keep.has(k)));
+    this.meta.set(meta);
+    this.items.set(items);
+    this.enrichments.set(drop(this.enrichments()));
+    this.overrides.set(drop(this.overrides()));
+    this.aiEras.set(drop(this.aiEras()));
+    if (this.db) {
+      const db = this.db;
+      await db.transaction('rw', [db.meta, db.items, db.enrichments, db.overrides, db.aiEras], async () => {
+        await db.meta.put(meta);
+        await db.items.clear();
+        await db.items.bulkPut(items);
+        if (gone.length) {
+          await db.enrichments.bulkDelete(gone);
+          await db.overrides.bulkDelete(gone);
+          await db.aiEras.bulkDelete(gone);
+        }
+      });
+    }
   }
 
   async addEnrichments(list: Enrichment[]): Promise<void> {

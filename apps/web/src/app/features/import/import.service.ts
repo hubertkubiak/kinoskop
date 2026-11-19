@@ -97,7 +97,9 @@ export class ImportService {
   }
 
   private async apply(file: ExportFile): Promise<void> {
-    await this.store.loadExport(file, 'import');
+    // Part 2 (or a re-import) of the same Filmweb user keeps what is already matched.
+    if (this.store.isSameUser(file)) await this.store.mergeExport(file);
+    else await this.store.loadExport(file, 'import');
     // Statistics that need no enrichment are shown immediately; enrichment runs in the background.
     void this.enrichment.start();
     await this.router.navigateByUrl('/przeglad');

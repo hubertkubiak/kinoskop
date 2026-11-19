@@ -29,6 +29,12 @@ import { FilmLeader } from '../ui/film-leader';
         {{ enrich.label() }}
         <button type="button" class="underline text-ks-accent" (click)="enrich.start()">Spróbuj ponownie</button>
       </p>
+    } @else if (store.meta()?.part === 'base') {
+      <p class="px-4 py-2 text-sm bg-ks-surface-2 border-t border-ks-border" role="status">
+        To część 1 importu – skrypt na Filmwebie wciąż pobiera tytuły pozycji, których nie znaleźliśmy po identyfikatorze.
+        Gdy skończy, przeciągnij plik kinoskop-eksport-….json (część 2) na
+        <a routerLink="/start" class="underline text-ks-accent">stronę importu</a>. Dopasowane tytuły zostaną.
+      </p>
     } @else if (enrich.phase() === 'done' && enrich.unmatched() > 0) {
       <p class="px-4 py-2 text-sm bg-ks-surface-2 border-t border-ks-border" role="status">
         Nie udało się automatycznie dopasować {{ enrich.unmatched() }} tytułów.

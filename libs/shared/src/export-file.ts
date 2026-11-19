@@ -24,6 +24,12 @@ export const ExportFileSchema = z.object({
   // 'filmweb' = console script; 'csv' = converted in the browser from another tool's CSV.
   source: z.enum(['filmweb', 'csv']),
   scriptVersion: z.string().max(20).optional(),
+  /**
+   * 'base' = first file of a two-part import: all lists are complete, but titles of items that
+   * Wikidata cannot match are still being fetched; the later 'full' file of the same user is
+   * merged into it (SPEC §5.3, docs/adr/0003). Missing = 'full'.
+   */
+  part: z.enum(['base', 'full']).optional(),
   user: z.object({ id: z.number().int(), name: z.string() }),
   items: z.array(ExportItemSchema).max(50_000),
 });

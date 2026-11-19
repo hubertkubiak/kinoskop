@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { mockApi } from './support';
 
@@ -19,6 +19,52 @@ test('imports an export file end-to-end and enriches it', async ({ page }) => {
   for (const r of api.requests.filter((x) => x.method() === 'POST')) {
     expect(r.postData()).not.toMatch(/"rating"|"ratedAt"|"favorite"|ANON_USER/);
   }
+});
+
+test('merges part 2 of a two-part import without losing matched titles', async ({ page }) => {
+  const api = await mockApi(page);
+  const sample = JSON.parse(readFileSync(SAMPLE, 'utf8')) as { items: { filmwebId: number; title?: string }[] };
+  const UNKNOWN = sample.items[1].filmwebId;
+  // Wikidata-like mock that does not know UNKNOWN by id – only a title search finds it.
+  await page.route('**/api/enrich', async (route) => {
+    api.requests.push(route.request());
+    const body = route.request().postDataJSON() as { items: { filmwebId: number; kind: string; title?: string }[] };
+    const found = body.items.filter((i) => i.filmwebId !== UNKNOWN || i.title);
+    const base = { match: { method: 'wikidata', confidence: 1 }, year: 2001, genres: ['Dramat'], countries: ['PL'] };
+    const empty = { directors: [], cast: [], setInPeriod: [], narrativeLocations: [], keywords: [], awards: [] };
+    await route.fulfill({
+      json: {
+        cacheHits: 0,
+        errors: body.items.filter((i) => !found.includes(i)).map((i) => ({ filmwebId: i.filmwebId, kind: i.kind, code: 'unmatched', message: 'x' })),
+        results: found.map((i) => ({ filmwebId: i.filmwebId, kind: i.kind, title: i.title ?? `Tytuł ${i.filmwebId}`, ...base, ...empty })),
+      },
+    });
+  });
+  const file = (part: 'base' | 'full', items: unknown[]) => ({
+    name: `kinoskop-eksport-${part}.json`,
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ ...sample, part, items })),
+  });
+
+  await page.goto('/start');
+  await page.getByTestId('file-input').setInputFiles(file('base', sample.items));
+  await page.waitForURL('**/przeglad');
+  // Part 1: the banner explains that titles are still coming instead of reporting failed matches.
+  await expect(page.getByText('To część 1 importu')).toBeVisible();
+  await expect(page.getByText('Nie udało się automatycznie dopasować')).toHaveCount(0);
+
+  const before = api.requests.length;
+  const withTitle = sample.items.map((i) => (i.filmwebId === UNKNOWN ? { ...i, title: 'Ręka' } : i));
+  await page.goto('/start');
+  await page.getByTestId('file-input').setInputFiles(file('full', withTitle));
+  await page.waitForURL('**/przeglad');
+  await expect(page.getByText('To część 1 importu')).toHaveCount(0);
+  await expect.poll(() => api.requests.slice(before).some((r) => r.url().includes('/api/enrich'))).toBe(true);
+  await expect(page.getByText('Nie udało się automatycznie dopasować')).toHaveCount(0);
+  // Only the previously unmatched item is sent again; the 39 matched ones are kept.
+  const later = api.requests.slice(before).filter((r) => r.method() === 'POST' && r.url().includes('/api/enrich'));
+  const sent = later.flatMap((r) => (r.postDataJSON() as { items: { filmwebId: number }[] }).items.map((i) => i.filmwebId));
+  expect([...new Set(sent)]).toEqual([UNKNOWN]);
 });
 
 test('imports several Letterboxd-format CSV files after a preview', async ({ page }) => {

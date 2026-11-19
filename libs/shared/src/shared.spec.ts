@@ -34,6 +34,12 @@ describe('parseExportFile', () => {
     expect(r).toMatchObject({ ok: false, reason: 'version', schemaVersion: 7 });
   });
 
+  it('accepts the two-part import markers and rejects unknown ones', () => {
+    expect(parseExportFile(JSON.stringify({ ...validFile, part: 'base' }))).toMatchObject({ ok: true, file: { part: 'base' } });
+    expect(parseExportFile(JSON.stringify({ ...validFile, part: 'full' })).ok).toBe(true);
+    expect(parseExportFile(JSON.stringify({ ...validFile, part: 'half' }))).toMatchObject({ ok: false, reason: 'schema' });
+  });
+
   it('rejects out-of-range ratings', () => {
     const bad = { ...validFile, items: [{ ...validFile.items[0], rating: 11 }] };
     expect(parseExportFile(JSON.stringify(bad))).toMatchObject({ ok: false, reason: 'schema' });

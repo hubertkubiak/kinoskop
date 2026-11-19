@@ -21,6 +21,8 @@ export class EnrichmentService {
   private readonly api = inject(ApiClient);
   private readonly store = inject(LibraryStore);
   private running = false;
+  /** start() called while running (e.g. part 2 imported mid-way): run once more at the end. */
+  private again = false;
 
   readonly phase = signal<EnrichPhase>('idle');
   readonly done = signal(0);
@@ -45,7 +47,11 @@ export class EnrichmentService {
 
   /** Enriches every item that has no enrichment yet. Safe to call repeatedly. */
   async start(): Promise<void> {
-    if (this.running || this.store.isDemo()) return;
+    if (this.store.isDemo()) return;
+    if (this.running) {
+      this.again = true;
+      return;
+    }
     const known = this.store.enrichments();
     const todo = this.store.items().filter((i) => !known.has(i.key));
     if (!todo.length) return;
@@ -87,6 +93,10 @@ export class EnrichmentService {
       this.phase.set('error');
     } finally {
       this.running = false;
+    }
+    if (this.again) {
+      this.again = false;
+      await this.start();
     }
   }
 
