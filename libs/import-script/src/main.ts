@@ -5,6 +5,7 @@
 
 import {
   ALLOWED_HOST,
+  RECOMMENDED_PATH,
   BASE_FILE_MIN_TITLES,
   MAX_PAGES,
   PROGRESS_KEY,
@@ -50,12 +51,22 @@ function panel(): HTMLElement {
 
 let lastMsg = '';
 const HIDDEN_NOTE = ' ⏸ Karta jest w tle – przeglądarka spowalnia import. Wróć do niej (może być w osobnym oknie).';
+/** Stała podpowiedź w panelu, gdy skrypt nie działa na zalecanej stronie (RECOMMENDED_PATH). */
+const OFF_PATH_NOTE = ` ⚠ Najpewniej działa na www.filmweb.pl${RECOMMENDED_PATH} – ta strona może się sama przeładować i przerwać import.`;
+const offPath = () => {
+  try {
+    return location.pathname !== RECOMMENDED_PATH;
+  } catch {
+    return false;
+  }
+};
 
 const log = (msg: string) => {
   lastMsg = msg;
   console.log(`%cKinoskop%c ${msg}`, STYLE, '');
   try {
-    panel().textContent = `Kinoskop: ${msg}${document.visibilityState === 'hidden' ? HIDDEN_NOTE : ''}`;
+    panel().textContent =
+      `Kinoskop: ${msg}${offPath() ? OFF_PATH_NOTE : ''}${document.visibilityState === 'hidden' ? HIDDEN_NOTE : ''}`;
   } catch {
     /* brak DOM – zostaje sama konsola */
   }
@@ -277,6 +288,14 @@ export async function run(): Promise<void> {
     return;
   }
   const started = Date.now();
+  if (offPath()) {
+    // Tylko podpowiedź (też stale w panelu) – import działa na każdej stronie, ale zwykłe strony
+    // Filmwebu potrafią się same przeładować i przerwać skrypt (zaobserwowane 2026-11-19).
+    console.warn(
+      `Kinoskop: najpewniej działa na https://${ALLOWED_HOST}${RECOMMENDED_PATH} – zwykłe strony Filmwebu potrafią ` +
+        'się same przeładować i przerwać import. Jeśli import się zatrzyma, otwórz tę stronę i wklej skrypt ponownie (postęp zostanie wznowiony).',
+    );
+  }
   log(
     `start (wersja ${SCRIPT_VERSION}). Nie zamykaj ani nie przeładowuj tej karty i trzymaj ją na wierzchu ` +
       '(może być w osobnym oknie) – karty w tle przeglądarka spowalnia.',

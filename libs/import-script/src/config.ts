@@ -1,13 +1,16 @@
 // Konfiguracja skryptu importu Kinoskopu. Wartości wpisywane na stałe w zbudowany plik.
 
 /** Wersja skryptu (podnoś przy każdej zmianie zachowania). */
-export const SCRIPT_VERSION = '0.4.0';
+export const SCRIPT_VERSION = '0.4.1';
 
 /** Wersja formatu pliku eksportu; musi być równa EXPORT_SCHEMA_VERSION z libs/shared. */
 export const SCHEMA_VERSION = 1;
 
 /** Jedyna strona, na której skrypt może działać. */
 export const ALLOWED_HOST = 'www.filmweb.pl';
+
+/** Zalecana strona do uruchomienia: prosta, bez skryptów Filmwebu, więc nie przeładowuje się w trakcie importu. */
+export const RECOMMENDED_PATH = '/robots.txt';
 
 /** Przerwa między zapytaniami: losowo z tego zakresu (ms), jak przy ręcznym przeglądaniu. */
 export const DELAY_MS = { min: 400, max: 900 } as const;
