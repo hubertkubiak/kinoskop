@@ -17,6 +17,7 @@ const env: Env = {
   HOST: 'localhost',
   CACHE_DB_PATH: ':memory:',
   NODE_ENV: 'test',
+  TRUST_PROXY: false,
 };
 
 /** Fake Wikidata: knows Filmweb id 1089 → Q47703 (The Godfather). */

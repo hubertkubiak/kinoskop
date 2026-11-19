@@ -12,6 +12,8 @@ const EnvSchema = z.object({
   HOST: z.string().default('localhost'),
   CACHE_DB_PATH: z.string().default('./data/cache.sqlite'),
   NODE_ENV: z.string().default('development'),
+  /** true behind a reverse proxy (Render): client IP for the rate limit comes from X-Forwarded-For. */
+  TRUST_PROXY: z.stringbool().default(false),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

@@ -35,6 +35,8 @@ export const API_VERSION = '0.1.0';
  */
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const app = Fastify({
+    // Behind Render's proxy the client IP is in X-Forwarded-For; without this the rate limit would be shared by everyone.
+    trustProxy: deps.env.TRUST_PROXY,
     logger: deps.logger === false ? false : {
       level: 'info',
       serializers: {
