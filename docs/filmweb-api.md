@@ -34,6 +34,12 @@
 - Strona główna potrafi się sama przeładować (zaobserwowane), co przerywa skrypt i czyści konsolę. Zalecamy
   uruchamianie na `https://www.filmweb.pl/robots.txt`; skrypt pokazuje też panel postępu na stronie i ostrzega przed
   opuszczeniem karty.
+- **Brak zbiorczego info tytułów (sprawdzone 2026-11-19).** Podgląd ruchu sieciowego strony własnych ocen
+  (`/users/{uuid}#/votes/film`, zalogowany autor, tylko przeglądanie): sam Filmweb pobiera dane **po jednym tytule**,
+  bez przerw, np. `GET /api/v1/film/{id}/preview`, `GET /api/v1/vod/film/{id}/providers/list?countryCode=PL`,
+  `GET /api/v1/users/{userId}/votes/film/{id}/reactions` – ok. 100 zapytań przy wczytaniu jednej strony listy.
+  Nie zaobserwowano endpointu przyjmującego wiele ID, więc skrypt zostaje przy `/api/v1/title/{id}/info` po jednym
+  (z pamięcią tytułów między importami). Endpointów zbiorczych nie zgadujemy.
 - Otwarte: czy `favorite` w ocenach to pełna lista ulubionych (u autora 18 pozycji).
 
 ## Decyzja: `TITLE_INFO_MODE = 'missing'` (2026-11-19)
