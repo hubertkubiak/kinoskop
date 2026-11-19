@@ -64,7 +64,7 @@ export class EnrichmentService {
         this.phase.set('error');
         return;
       }
-      // Stage 1 (ids only) makes sense only for real Filmweb IDs; local ids (CSV) go straight to stage 2.
+      // Stage 1 (ids only) makes sense only for real source IDs; local ids (CSV) go straight to stage 2.
       const withId = todo.filter((i) => !isLocalId(i.filmwebId));
       const local = todo.filter((i) => isLocalId(i.filmwebId));
       this.phase.set('ids');

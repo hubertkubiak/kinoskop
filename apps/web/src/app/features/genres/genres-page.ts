@@ -25,8 +25,8 @@ import { fmtAvg } from '../../core/format';
       <ks-chart-card heading="Liczba tytułów wg gatunku" [subtitle]="top() ? 'Top: ' + top() : undefined"
         [option]="countOption()" [table]="countTable()" [height]="barHeight()" [empty]="rows().length === 0">
         <p class="text-xs text-ks-muted mt-2">
-          Gatunki pochodzą z {{ kind() === 'game' ? 'IGDB' : 'TMDB' }} (zmapowane na polskie nazwy). Liczby są bardzo bliskie
-          filmwebowym, ale nie identyczne, bo bazy klasyfikują gatunki nieco inaczej.
+          Gatunki pochodzą z {{ kind() === 'game' ? 'IGDB' : 'TMDB' }} (zmapowane na polskie nazwy). Liczby mogą się nieco
+          różnić od tych w serwisie, z którego pochodzą oceny, bo bazy klasyfikują gatunki nieco inaczej.
         </p>
       </ks-chart-card>
       <ks-chart-card heading="Średnia ocena wg gatunku" subtitle="Gatunki z mniej niż 3 tytułami wyszarzone"

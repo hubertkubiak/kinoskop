@@ -5,7 +5,7 @@
 
 # Kinoskop
 
-**Twoje kino w liczbach.** Statystyki, mapa gustu i nagrody filmowe na podstawie Twoich ocen z Filmwebu.
+**Twoje kino w liczbach.** Statystyki, mapa gustu i nagrody filmowe na podstawie Twoich ocen filmów, seriali i gier.
 
 [![CI](https://img.shields.io/github/actions/workflow/status/OWNER/kinoskop/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/OWNER/kinoskop/actions)
 [![License: MIT](https://img.shields.io/badge/licencja-MIT-F0B23E?style=flat-square)](LICENSE)
@@ -45,7 +45,7 @@
 
 | | |
 |---|---|
-| 🎞️ **Statystyki jak na Filmwebie** | liczba tytułów wg gatunku, top gatunek, rozkład ocen, osobno dla filmów, seriali i gier |
+| 🎞️ **Podstawowe statystyki** | liczba tytułów wg gatunku, top gatunek, rozkład ocen, osobno dla filmów, seriali i gier |
 | 🔎 **Złożone filtrowanie** | łącz dowolnie: gatunek, kraj, narodowość reżysera, epokę akcji, twórców, nagrody, zakres ocen i lat |
 | 🌍 **Świat i twórcy** | mapa krajów produkcji, narodowości reżyserów, rankingi reżyserów i aktorów |
 | 🏛️ **Epoki historyczne** | w jakich czasach dzieją się filmy, które oglądasz i które oceniasz najwyżej |
@@ -68,19 +68,19 @@ Są dwie drogi importu. Obie działają w całości w przeglądarce.
 
 1. Zaloguj się na **filmweb.pl**, a potem otwórz w tej karcie `https://www.filmweb.pl/robots.txt` (prosta strona, która nie przeładuje się w trakcie importu).
 2. W Kinoskopie kliknij **„Skopiuj skrypt”**.
-3. Na karcie Filmwebu otwórz konsolę (`Ctrl+Shift+J` / `Cmd+Option+J`, w Firefoksie `Ctrl+Shift+K`), wpisz `allow pasting`, jeśli przeglądarka o to poprosi, wklej skrypt i naciśnij Enter.
+3. Na tej karcie otwórz konsolę (`Ctrl+Shift+J` / `Cmd+Option+J`, w Firefoksie `Ctrl+Shift+K`), wpisz `allow pasting`, jeśli przeglądarka o to poprosi, wklej skrypt i naciśnij Enter.
 4. Przeciągnij pobrany plik `kinoskop-eksport-….json` na stronę Kinoskopu.
 
-Przy dużym profilu skrypt zapisuje dwa pliki. **Część 1** powstaje po kilku minutach: wczytaj ją od razu, statystyki będą gotowe. Potem skrypt pobiera tytuł i rok pozycji, których Wikidata nie zna po identyfikatorze Filmwebu (u autora ok. 2300 tytułów, ok. pół godziny), i zapisuje **część 2**. Przeciągnięta do Kinoskopu uzupełnia część 1 bez utraty dopasowań. Pobrane tytuły skrypt pamięta w przeglądarce (`localStorage` na filmweb.pl), więc kolejne importy trwają kilka minut. Trzymaj kartę na wierzchu (może być w osobnym oknie), bo karty w tle przeglądarka spowalnia. Przerwany import wznawia się po ponownym uruchomieniu.
+Przy dużym profilu skrypt zapisuje dwa pliki. **Część 1** powstaje po kilku minutach: wczytaj ją od razu, statystyki będą gotowe. Potem skrypt pobiera tytuł i rok pozycji, których Wikidata nie zna po identyfikatorze (u autora ok. 2300 tytułów, ok. pół godziny), i zapisuje **część 2**. Przeciągnięta do Kinoskopu uzupełnia część 1 bez utraty dopasowań. Pobrane tytuły skrypt pamięta w przeglądarce (`localStorage` na filmweb.pl), więc kolejne importy trwają kilka minut. Trzymaj kartę na wierzchu (może być w osobnym oknie), bo karty w tle przeglądarka spowalnia. Przerwany import wznawia się po ponownym uruchomieniu.
 
-Skrypt pobiera tylko **Twoje własne dane** (oceny, daty, listy) zapytaniami GET, w tempie zbliżonym do ręcznego przeglądania, i zapisuje plik na Twoim dysku. Regulamin Filmwebu ogranicza korzystanie z programów automatycznych, więc z importu korzystasz na własną odpowiedzialność. Jego pełny kod jest widoczny w aplikacji przed skopiowaniem. Szczegółowa instrukcja z rozwiązywaniem problemów jest w aplikacji.
+Skrypt pobiera tylko **Twoje własne dane** (oceny, daty, listy) zapytaniami GET, w tempie zbliżonym do ręcznego przeglądania, i zapisuje plik na Twoim dysku. Regulamin serwisu ogranicza korzystanie z programów automatycznych, więc z importu korzystasz na własną odpowiedzialność. Jego pełny kod jest widoczny w aplikacji przed skopiowaniem. Szczegółowa instrukcja z rozwiązywaniem problemów jest w aplikacji.
 
 ### B. Masz już plik CSV z innego narzędzia
 
-Przeciągnij na stronę importu jeden lub kilka plików CSV w formacie Letterboxd, np. z Filmweb2Letterboxd
+Przeciągnij na stronę importu jeden lub kilka plików CSV w formacie Letterboxd, np. z konwerterów ocen do tego formatu
 (`Title,Year,WatchedDate,Rating10`) albo eksport z samego Letterboxd (`Name,Year,Rating`). Rodzaj (film, serial,
 gra) i listę („chcę zobaczyć”) Kinoskop rozpozna po nazwie pliku, a przed zapisem pokaże podsumowanie.
-Takie pliki nie mają identyfikatorów Filmwebu ani ulubionych, więc tytuły są dopasowywane po nazwie i roku.
+Takie pliki nie mają identyfikatorów tytułów ani ulubionych, więc tytuły są dopasowywane po nazwie i roku.
 Wymaga to klucza `TMDB_API_TOKEN` (dla gier `TWITCH_*`), a część pozycji może trzeba będzie potwierdzić
 w widoku **Weryfikacja**. Szczegóły: SPEC §5.4.
 
@@ -129,7 +129,7 @@ autora: [`docs/open-questions.md`](docs/open-questions.md).
 
 ```mermaid
 flowchart LR
-  FW["filmweb.pl<br/>skrypt w konsoli"] -- plik JSON --> WEB["Angular SPA<br/>+ IndexedDB"]
+  FW["serwis z ocenami<br/>skrypt w konsoli"] -- plik JSON --> WEB["Angular SPA<br/>+ IndexedDB"]
   WEB -- "ID i tytuły (bez ocen)" --> API["Fastify API<br/>+ SQLite cache"]
   API --> WD[Wikidata]
   API --> TMDB[TMDB]
@@ -142,7 +142,7 @@ apps/web           Angular 22: widoki, wykresy, mapa gustu
 apps/api           Fastify 5: wzbogacanie, nagrody, wyszukiwanie
 libs/shared        schematy Zod i typy wspólne dla wszystkich części
 libs/stats         czyste funkcje statystyk i filtrów
-libs/import-script skrypt konsolowy dla filmweb.pl
+libs/import-script skrypt importu (konsola przeglądarki)
 ```
 
 Pełna specyfikacja: [`SPEC.md`](SPEC.md).
@@ -170,7 +170,7 @@ Obecnie aplikacja działa tylko lokalnie. Docelowo repo będzie zawierać Bluepr
 - Nagrody, epoki i narodowości: **Wikidata** (CC0).
 - Oceny krytyków: **OMDb API** (opcjonalnie).
 
-> **Kinoskop jest niezależnym projektem i nie jest powiązany z Filmweb ani jego właścicielem.** Import korzysta z nieudokumentowanego interfejsu, którego Filmweb używa na własnej stronie; może on przestać działać bez ostrzeżenia.
+> **Kinoskop jest niezależnym projektem i nie jest powiązany z Filmweb ani jego właścicielem.** Import korzysta z nieudokumentowanego interfejsu, którego serwis używa na własnej stronie; może on przestać działać bez ostrzeżenia.
 
 ## 📄 Licencja
 

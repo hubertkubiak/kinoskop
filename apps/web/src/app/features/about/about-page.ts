@@ -7,8 +7,8 @@ import { BRAND } from '@kinoskop/shared';
   host: { class: 'block max-w-3xl' },
   template: `
     <h1 class="font-display text-4xl uppercase mb-4">O aplikacji</h1>
-    <p class="mb-4">{{ brand.name }} pokazuje statystyki Twoich ocen z Filmwebu, uzupełnione o publiczne metadane z otwartych źródeł.</p>
-    <p class="ks-card p-4 mb-6"><strong>{{ brand.disclaimer }}</strong> Import korzysta z nieudokumentowanego interfejsu, którego Filmweb używa na własnej stronie; może on przestać działać bez ostrzeżenia.</p>
+    <p class="mb-4">{{ brand.name }} pokazuje statystyki Twoich ocen filmów, seriali i gier, uzupełnione o publiczne metadane z otwartych źródeł.</p>
+    <p class="ks-card p-4 mb-6"><strong>{{ brand.disclaimer }}</strong> Import korzysta z nieudokumentowanego interfejsu, którego serwis używa na własnej stronie; może on przestać działać bez ostrzeżenia.</p>
 
     <h2 class="font-display text-2xl uppercase mb-2">Źródła danych i atrybucje</h2>
     <ul class="space-y-3 mb-6 text-sm">

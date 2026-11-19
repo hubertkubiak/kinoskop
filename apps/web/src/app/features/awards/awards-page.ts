@@ -59,7 +59,7 @@ export class AwardsPage {
 
   constructor() {
     void this.labels.load();
-    // Public metadata (poster, where to watch in PL) for recommended works with a Filmweb id.
+    // Public metadata (poster, where to watch in PL) for recommended works with a source id.
     effect(() => {
       const ids = this.recs()
         .filter((r) => r.entry.work.filmwebId !== undefined && !r.inWant2see)

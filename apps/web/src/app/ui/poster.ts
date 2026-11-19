@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
 
-/** Poster from TMDB/IGDB (never hotlinked from Filmweb) with a text fallback. */
+/** Poster from TMDB/IGDB (never hotlinked from the rating site) with a text fallback. */
 @Component({
   selector: 'ks-poster',
   changeDetection: ChangeDetectionStrategy.OnPush,

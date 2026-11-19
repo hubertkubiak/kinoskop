@@ -30,7 +30,7 @@ export class ImportService {
 
   /**
    * Accepts either one Kinoskop JSON export (console script) or one or more CSV files from other
-   * tools (Letterboxd format, e.g. Filmweb2Letterboxd). The format is detected by content.
+   * tools (Letterboxd format). The format is detected by content.
    */
   async importFiles(files: readonly File[]): Promise<boolean> {
     this.error.set(null);
@@ -97,7 +97,7 @@ export class ImportService {
   }
 
   private async apply(file: ExportFile): Promise<void> {
-    // Part 2 (or a re-import) of the same Filmweb user keeps what is already matched.
+    // Part 2 (or a re-import) of the same user keeps what is already matched.
     if (this.store.isSameUser(file)) await this.store.mergeExport(file);
     else await this.store.loadExport(file, 'import');
     // Statistics that need no enrichment are shown immediately; enrichment runs in the background.

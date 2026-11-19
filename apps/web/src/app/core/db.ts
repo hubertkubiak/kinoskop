@@ -7,7 +7,7 @@ export interface MetaRow {
   exportedAt: string;
   importedAt: string;
   userName: string;
-  /** Filmweb user id (script imports) – a later file of the same user is merged, not replaced. */
+  /** Source user id (script imports) – a later file of the same user is merged, not replaced. */
   userId?: number;
   /** 'base' = part 1 of a two-part import; titles of some items are still being fetched by the script. */
   part?: 'base' | 'full';
