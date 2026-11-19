@@ -8,6 +8,10 @@ export type EnrichPhase = 'idle' | 'warming' | 'ids' | 'titles' | 'done' | 'erro
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** Smaller batches than the API maximum give smoother progress; several run at once. */
+const BATCH_SIZE = Math.min(100, ENRICH_MAX_ITEMS);
+const PARALLEL_BATCHES = 3;
+
 /**
  * Two-stage enrichment (SPEC §14.4): stage 1 sends only {filmwebId, kind}; stage 2 sends title and
  * year only for items Wikidata could not map. Ratings never leave the browser.
@@ -100,14 +104,21 @@ export class EnrichmentService {
 
   private async runStage(items: ItemRow[], toRequest: (i: ItemRow) => EnrichRequestItem): Promise<ItemRow[]> {
     const unmatched: ItemRow[] = [];
-    for (let i = 0; i < items.length; i += ENRICH_MAX_ITEMS) {
-      const batch = items.slice(i, i + ENRICH_MAX_ITEMS);
-      const res = await this.withRetry(() => this.api.enrich(batch.map(toRequest)));
-      await this.store.addEnrichments(res.results);
-      const missing = new Set(res.errors.map((e) => `${e.kind}:${e.filmwebId}`));
-      unmatched.push(...batch.filter((b) => missing.has(b.key)));
-      this.done.update((d) => d + batch.length);
-    }
+    const batches: ItemRow[][] = [];
+    for (let i = 0; i < items.length; i += BATCH_SIZE) batches.push(items.slice(i, i + BATCH_SIZE));
+    // A few batches in flight keep the API's per-source limiters busy; the API still enforces the rate limits.
+    let next = 0;
+    const worker = async () => {
+      while (next < batches.length) {
+        const batch = batches[next++];
+        const res = await this.withRetry(() => this.api.enrich(batch.map(toRequest)));
+        await this.store.addEnrichments(res.results);
+        const missing = new Set(res.errors.map((e) => `${e.kind}:${e.filmwebId}`));
+        unmatched.push(...batch.filter((b) => missing.has(b.key)));
+        this.done.update((d) => d + batch.length);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(PARALLEL_BATCHES, batches.length) }, worker));
     return unmatched;
   }
 
@@ -116,8 +127,9 @@ export class EnrichmentService {
       try {
         return await fn();
       } catch (e) {
-        if (attempt >= 3) throw e;
-        await sleep(1500 * attempt);
+        // Up to ~30 s of back-off: covers a busy upstream and the API's own rate limit (429).
+        if (attempt >= 5) throw e;
+        await sleep(2000 * attempt);
       }
     }
   }

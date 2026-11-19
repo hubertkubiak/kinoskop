@@ -461,7 +461,7 @@ Claude Code przed implementacją **weryfikuje w dokumentacji dostawców**: obsł
 8. Zapis do cache, zwrot.
 
 Wymagania:
-- osobny limiter `bottleneck` per źródło (TMDB ~40 req/10 s, IGDB 4 req/s, Wikidata max 2 równoległe zapytania SPARQL z `User-Agent: Kinoskop/1.0 (kontakt: …)`, OMDb wg limitu klucza),
+- osobny limiter `bottleneck` per źródło (TMDB 20 req/s – połowa udokumentowanego limitu „ok. 40 req/s”, developer.themoviedb.org/docs/rate-limiting, sprawdzone 2026-11-19; stary limit 40 req/10 s wyłączony w 2019, IGDB 4 req/s, Wikidata max 2 równoległe zapytania SPARQL z `User-Agent: Kinoskop/1.0 (kontakt: …)`, OMDb wg limitu klucza),
 - timeouty, retry z backoff, częściowe wyniki zamiast błędu całego batcha (`errors[]` per pozycja),
 - **prywatność**: body `/api/enrich` nie jest logowane; brak identyfikatorów użytkownika w cache; rate limit per IP (`@fastify/rate-limit`) przeciw nadużyciom,
 - nagłówki bezpieczeństwa API przez `@fastify/helmet`; front serwowany osobno jako Render Static Site z nagłówkami CSP ustawionymi w `render.yaml` (obrazy z `image.tmdb.org` i `images.igdb.com`, `connect-src` dla API i dostawców LLM).

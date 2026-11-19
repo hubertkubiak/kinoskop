@@ -85,12 +85,14 @@ export type TmdbSearchResult = z.infer<typeof SearchResult>;
 export type TmdbKind = 'movie' | 'tv';
 
 export class TmdbClient {
-  // ~40 requests / 10 s (SPEC §8.2)
+  // TMDB documents "somewhere in the 40 requests per second range" and asks to respect 429
+  // (developer.themoviedb.org/docs/rate-limiting, checked 2026-11-19; the old 40 / 10 s limit was
+  // disabled in 2019). We stay at half of that; fetchJson backs off on 429 using Retry-After.
   private readonly limiter = new Bottleneck({
-    reservoir: 40,
-    reservoirRefreshAmount: 40,
-    reservoirRefreshInterval: 10_000,
-    maxConcurrent: 8,
+    reservoir: 20,
+    reservoirRefreshAmount: 20,
+    reservoirRefreshInterval: 1_000,
+    maxConcurrent: 12,
   });
 
   constructor(private readonly token: string) {}
