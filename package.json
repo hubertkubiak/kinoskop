@@ -4,6 +4,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "dev": "nx run-many -t serve -p api web",
     "awards:refresh": "nx run api:awards-refresh",
     "demo:generate": "node tools/demo-data/generate.mjs"
   },

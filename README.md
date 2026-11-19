@@ -95,6 +95,8 @@ cd kinoskop
 pnpm install
 cp .env.example .env        # uzupełnij klucze (patrz niżej)
 
+pnpm dev                    # backend (:3000) i frontend (:4200) jednocześnie
+# albo osobno:
 pnpm nx serve api           # backend → http://localhost:3000
 pnpm nx serve web           # frontend → http://localhost:4200 (proxy /api → 3000)
 ```
