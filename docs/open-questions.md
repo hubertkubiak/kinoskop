@@ -5,7 +5,7 @@ Poniżej lista z wstępnej implementacji (2026-11-18). SPEC.md zmieniany tylko p
 
 ## Wymaga działania autora
 
-1. **Faza 0 – sonda Filmwebu: zrobione 2026-11-19** (`docs/filmweb-api.md`). Otwarte tylko: czy pole `favorite`
+1. **Faza 0 – sonda Filmwebu: zrobione 2026-11-19** (ustalenia w `libs/import-script/src/endpoints.ts`). Otwarte tylko: czy pole `favorite`
    w ocenach obejmuje wszystkie ulubione.
 2. **Klucze API** (`.env`): bez `TMDB_API_TOKEN` wzbogacanie działa tylko z Wikidata (brak plakatów, ocen ogółu,
    obsady, „gdzie obejrzeć”, wyszukiwania ręcznego). Bez `TWITCH_*` gry nie są dopasowywane.

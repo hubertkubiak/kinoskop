@@ -1,5 +1,5 @@
 // Mapowanie surowych odpowiedzi Filmwebu na pozycje eksportu.
-// Kształt odpowiedzi potwierdzony 2026-11-19 (docs/filmweb-api.md). Mappery nadal akceptują kilka
+// Kształt odpowiedzi potwierdzony 2026-11-19 (endpoints.ts, fixtures/filmweb/probe/). Mappery nadal akceptują kilka
 // wariantów nazw pól i głośno zgłaszają nieznany kształt, bo API może się zmienić bez ostrzeżenia.
 
 import type { FwKind } from './endpoints';

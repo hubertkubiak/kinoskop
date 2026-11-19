@@ -40,6 +40,6 @@ export const BASE_FILE_MIN_TITLES = 100;
  * - 'missing' – gry oraz filmy i seriale, których Wikidata nie zna po Filmweb ID,
  * - 'all'     – zawsze, gdy lista nie zawiera tytułu.
  * Decyzja autora 2026-11-19: 'missing'. Wikidata znała tylko 47% tytułów autora, a bez tytułu
- * reszty nie da się wyszukać w TMDB (docs/filmweb-api.md, SPEC §14.1).
+ * reszty nie da się wyszukać w TMDB (SPEC §5.3, §14.1).
  */
 export const TITLE_INFO_MODE: 'none' | 'games' | 'missing' | 'all' = 'missing';

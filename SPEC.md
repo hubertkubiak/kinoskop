@@ -245,7 +245,7 @@ Wymagania:
 - Czytelny postęp w konsoli i w panelu na stronie: po każdej stronie listy, co 10 tytułów z szacowanym czasem do końca, ostrzeżenie o spowalnianiu kart w tle, na końcu podsumowanie (liczby per typ, czas, liczba błędów).
 - Na końcu: `Blob` → `URL.createObjectURL` → kliknięcie `<a download>`. Walidacja wyniku tym samym schematem Zod nie jest możliwa bez zależności, więc skrypt robi minimalne sanity checks, a pełną walidację robi aplikacja.
 
-**Endpointy Filmwebu — potwierdzone w Fazie 0 (2026-11-19, szczegóły w `docs/filmweb-api.md`).** API jest nieudokumentowane i może się zmienić:
+**Endpointy Filmwebu — potwierdzone w Fazie 0 (2026-11-19, ustalenia w komentarzu `libs/import-script/src/endpoints.ts`).** API jest nieudokumentowane i może się zmienić:
 
 | Cel | Oczekiwany endpoint | Status |
 |---|---|---|
@@ -571,7 +571,7 @@ Dockerfile dla API zostaje w repo dla przenośności (inny hosting, lokalne `doc
 ### Faza 0: Rozpoznanie API Filmwebu (z autorem)
 - Claude Code przygotowuje mały skrypt „sondę”, który autor uruchamia w konsoli na filmweb.pl. Sonda wywołuje kandydackie endpointy z sekcji 5.3 dla 2–3 tytułów każdego typu i pobiera surowe odpowiedzi jako plik.
 - Autor wrzuca plik do `fixtures/filmweb/` (po zanonimizowaniu nazwy użytkownika).
-- ✅ Udokumentowane, potwierdzone endpointy i kształty odpowiedzi w `docs/filmweb-api.md`; tabela w SPEC zaktualizowana.
+- ✅ Potwierdzone endpointy i kształty odpowiedzi (`libs/import-script/src/endpoints.ts`, `fixtures/filmweb/probe/`); tabela w SPEC zaktualizowana.
 
 ### Faza 1: Szkielet, import i demo
 - Nx workspace, apps/web, apps/api, libs/shared (schematy Zod), libs/import-script, CI.

@@ -1,6 +1,18 @@
-// Wszystkie ścieżki API Filmwebu w jednym miejscu.
+// Wszystkie ścieżki API w jednym miejscu.
 // API jest nieudokumentowane. Ścieżki i kształt odpowiedzi potwierdzone zapytaniami GET
-// na koncie autora 2026-11-19 (docs/filmweb-api.md). Mogą się zmienić bez ostrzeżenia.
+// na koncie autora 2026-11-19 (próbki pól: fixtures/filmweb/probe/). Mogą się zmienić bez ostrzeżenia.
+//
+// Ustalenia (2026-11-19):
+// - Paginacja: zwykle 100 pozycji na stronę, czasem mniej w środku listy – koniec to PUSTA tablica,
+//   nie krótsza strona; strony daleko za końcem zwracają 500.
+// - Daty: `timestamp` = czas oceny w ms (→ ratedAt), `viewDate` = data obejrzenia RRRRMMDD.
+// - Listy nie mają tytułu ani roku; filmy i seriale łączymy przez Wikidata P5032, a info tytułu
+//   pobieramy tylko dla nieznanych Wikidata i gier (TITLE_INFO_MODE, config.ts).
+// - Brak endpointu zbiorczego: strona własnych ocen sama pobiera dane po jednym tytule
+//   (np. /api/v1/film/{id}/preview) – sprawdzone podglądem ruchu sieciowego. Zbiorczych nie zgadujemy.
+// - Sesja: krótko ważne ciasteczko HttpOnly odświeżane wczytaniem strony HTML (patrz http.ts).
+// - Strona główna potrafi się sama przeładować – zalecamy uruchamianie na /robots.txt.
+// - Otwarte: czy `favorite` w ocenach obejmuje wszystkie ulubione.
 
 /** Rodzaj pozycji w pliku eksportu Kinoskopu. */
 export type FwKind = 'film' | 'serial' | 'game';

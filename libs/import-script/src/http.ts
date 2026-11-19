@@ -25,7 +25,7 @@ export const getRequestCount = () => requestCount;
  * Odnawia sesję. Filmweb trzyma logowanie w krótko ważnym tokenie (ciasteczko HttpOnly),
  * który odświeża przy wczytaniu dowolnej strony HTML. Długi import na jednej karcie
  * przekracza ten czas, więc przy 401/403 pobieramy stronę główną (zwykłe GET) i ponawiamy.
- * Zaobserwowane na koncie autora 2026-11-19 (docs/filmweb-api.md).
+ * Zaobserwowane na koncie autora 2026-11-19.
  */
 async function renewSession(): Promise<void> {
   await humanPause();
