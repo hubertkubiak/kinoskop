@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { EXPORT_SCHEMA_VERSION, ExportItemSchema } from '@kinoskop/shared';
 import { SCHEMA_VERSION } from './config';
+import { ENDPOINTS, FW_LISTS } from './endpoints';
 import {
   dedupe,
   extractList,
@@ -14,7 +15,7 @@ import {
   toIsoDate,
 } from './mappers';
 
-// NOTE: synthetic fixtures – assumed shapes until Phase 0 confirms the real API.
+// NOTE: synthetic fixtures – alternative shapes the defensive mappers also accept.
 const fx = (name: string): unknown =>
   JSON.parse(
     readFileSync(join(__dirname, '../../../fixtures/filmweb/synthetic', name), 'utf8'),
@@ -78,5 +79,32 @@ describe('import-script mappers (synthetic fixtures)', () => {
   it('parses dates defensively', () => {
     expect(toIsoDate('nope')).toBeUndefined();
     expect(toIsoDate(0)).toBeUndefined();
+  });
+});
+
+// Shapes confirmed against the real API on 2026-11-19 (synthetic values, real field names/types).
+const probe = (name: string): unknown =>
+  JSON.parse(readFileSync(join(__dirname, '../../../fixtures/filmweb/probe', name), 'utf8'));
+
+describe('import-script mappers (confirmed API shape)', () => {
+  it('maps a real-shaped vote page', () => {
+    const items = extractList(probe('votes-film-page.json')).map((r) => mapVote(r, 'film'));
+    expect(items).toEqual([
+      { filmwebId: 1089, kind: 'film', list: 'rated', rating: 8, ratedAt: new Date(1795039650404).toISOString() },
+      { filmwebId: 4833, kind: 'film', list: 'rated', rating: 10, ratedAt: new Date(1552400000000).toISOString() },
+    ]);
+    for (const it of items) expect(ExportItemSchema.safeParse(it).success).toBe(true);
+  });
+
+  it('maps want2see and title info', () => {
+    expect(extractList(probe('want2see-page.json')).map((r) => mapWant2see(r, 'film'))).toEqual([
+      { filmwebId: 521206, kind: 'film', list: 'want2see' },
+    ]);
+    expect(mapTitleInfo(probe('title-info.json'))).toEqual({ title: 'Portal 2', year: 2011 });
+  });
+
+  it('uses Filmweb path kinds (videogame, tvshow) mapped to export kinds', () => {
+    expect(FW_LISTS.map((l) => `${l.path}→${l.kind}`)).toEqual(['film→film', 'serial→serial', 'tvshow→serial', 'videogame→game']);
+    expect(ENDPOINTS.votes('videogame', 2)).toBe('/api/v1/logged/vote/title/videogame?page=2');
   });
 });

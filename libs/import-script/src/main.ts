@@ -4,8 +4,8 @@
 // Niczego nie zmienia na Filmwebie i niczego nigdzie nie wysyła.
 
 import { ALLOWED_HOST, MAX_PAGES, PROGRESS_KEY, SCHEMA_VERSION, SCRIPT_VERSION, TITLE_INFO_MODE } from './config';
-import { ENDPOINTS, type FwKind } from './endpoints';
-import { getJson, getRequestCount, NotLoggedInError, TooManyRequestsError } from './http';
+import { ENDPOINTS, FW_LISTS, type FwKind, type FwPathKind } from './endpoints';
+import { BadRequestError, getJson, getRequestCount, NotLoggedInError, TooManyRequestsError } from './http';
 import {
   dedupe,
   extractList,
@@ -19,7 +19,37 @@ import {
 
 const KINDS: FwKind[] = ['film', 'serial', 'game'];
 const STYLE = 'color:#1A1306;background:#F0B23E;padding:2px 6px;border-radius:3px;font-weight:bold';
-const log = (msg: string) => console.log(`%cKinoskop%c ${msg}`, STYLE, '');
+
+/** Panel postępu na stronie: konsola bywa czyszczona, a nie każdy na nią patrzy. */
+function panel(): HTMLElement {
+  let el = document.getElementById('kinoskop-panel');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'kinoskop-panel';
+    el.setAttribute('role', 'status');
+    el.style.cssText =
+      'position:fixed;z-index:2147483647;right:16px;bottom:16px;max-width:360px;padding:12px 16px;' +
+      'background:#1A1306;color:#F5EBDD;border:2px solid #F0B23E;border-radius:8px;' +
+      'font:14px/1.4 system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.4)';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+const log = (msg: string) => {
+  console.log(`%cKinoskop%c ${msg}`, STYLE, '');
+  try {
+    panel().textContent = `Kinoskop: ${msg}`;
+  } catch {
+    /* brak DOM – zostaje sama konsola */
+  }
+};
+
+/** Ostrzeżenie przy próbie opuszczenia/przeładowania karty w trakcie importu. */
+const keepAlive = (e: BeforeUnloadEvent) => {
+  e.preventDefault();
+  e.returnValue = '';
+};
 
 /** Stan zapisywany po każdej stronie, żeby ponowne uruchomienie pominęło pobrane dane. */
 interface Progress {
@@ -45,16 +75,25 @@ const saveProgress = (p: Progress) => sessionStorage.setItem(PROGRESS_KEY, JSON.
 async function fetchPages(
   p: Progress,
   name: 'votes' | 'want2see',
-  kind: FwKind,
+  list: { path: FwPathKind; kind: FwKind },
   map: (raw: unknown, kind: FwKind) => RawItem,
 ): Promise<void> {
+  const { path, kind } = list;
   for (let page = 1; page <= MAX_PAGES; page++) {
-    const tag = `${name}:${kind}:${page}`;
+    const tag = `${name}:${path}:${page}`;
     if (p.done.includes(tag)) continue;
-    if (p.done.includes(`${name}:${kind}:end`)) return;
-    const body = await getJson(ENDPOINTS[name](kind, page));
-    const list = body === null ? [] : extractList(body);
-    for (const raw of list) {
+    if (p.done.includes(`${name}:${path}:end`)) return;
+    let body: unknown;
+    try {
+      body = await getJson(ENDPOINTS[name](path, page));
+    } catch (e) {
+      if (!(e instanceof BadRequestError)) throw e;
+      // Filmweb nie zna tej listy – pomijamy ją zamiast przerywać cały import.
+      console.warn(`Kinoskop: lista ${name}/${path} niedostępna (400), pomijam.`);
+      body = null;
+    }
+    const items = body === null ? [] : extractList(body);
+    for (const raw of items) {
       try {
         p.items.push(map(raw, kind));
       } catch (e) {
@@ -62,10 +101,10 @@ async function fetchPages(
         console.warn('Kinoskop: pominięto pozycję –', (e as Error).message);
       }
     }
-    p.done.push(list.length === 0 ? `${name}:${kind}:end` : tag);
+    p.done.push(items.length === 0 ? `${name}:${path}:end` : tag);
     saveProgress(p);
-    if (list.length === 0) return;
-    if (p.items.length % 25 < list.length) log(`${p.items.length} tytułów…`);
+    if (items.length === 0) return;
+    log(`${p.items.length} pozycji… (${path}, strona ${page})`);
   }
 }
 
@@ -126,14 +165,15 @@ export async function run(): Promise<void> {
     return;
   }
   const started = Date.now();
-  log(`start (wersja ${SCRIPT_VERSION}). Nie zamykaj tej karty.`);
+  log(`start (wersja ${SCRIPT_VERSION}). Nie zamykaj ani nie przeładowuj tej karty.`);
+  window.addEventListener('beforeunload', keepAlive);
   try {
     const user = mapLoggedInfo(await getJson(ENDPOINTS.loggedInfo()));
     const p = loadProgress(user.id);
     if (p.done.length) log(`wznawiam: mam już ${p.items.length} pozycji.`);
-    for (const kind of KINDS) {
-      await fetchPages(p, 'votes', kind, mapVote);
-      await fetchPages(p, 'want2see', kind, mapWant2see);
+    for (const list of FW_LISTS) {
+      await fetchPages(p, 'votes', list, mapVote);
+      await fetchPages(p, 'want2see', list, mapWant2see);
     }
     await fetchTitleInfo(p);
     const items = dedupe(p.items);
@@ -142,11 +182,15 @@ export async function run(): Promise<void> {
     sessionStorage.removeItem(PROGRESS_KEY);
     const per = KINDS.map((k) => `${k}: ${items.filter((i) => i.kind === k).length}`).join(', ');
     const secs = Math.round((Date.now() - started) / 1000);
-    log(`gotowe! ${items.length} pozycji (${per}), ${getRequestCount()} zapytań, ${secs} s, błędów: ${p.errors}.`);
-    log(`zapisano plik ${name}. Przeciągnij go na stronę Kinoskopu.`);
+    log(
+      `gotowe! ${items.length} pozycji (${per}), ${getRequestCount()} zapytań, ${secs} s, błędów: ${p.errors}. ` +
+        `Zapisano plik ${name} – przeciągnij go na stronę Kinoskopu.`,
+    );
   } catch (e) {
     if (e instanceof NotLoggedInError) log('nie jesteś zalogowany. Zaloguj się na filmweb.pl i uruchom skrypt ponownie.');
     else if (e instanceof TooManyRequestsError) log('za dużo zapytań. Spróbuj za kilka minut – postęp zostanie wznowiony.');
     else log(`przerwano: ${(e as Error).message}. Uruchom ponownie – postęp zostanie wznowiony.`);
+  } finally {
+    window.removeEventListener('beforeunload', keepAlive);
   }
 }

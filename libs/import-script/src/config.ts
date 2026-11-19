@@ -1,7 +1,7 @@
 // Konfiguracja skryptu importu Kinoskopu. Wartości wpisywane na stałe w zbudowany plik.
 
 /** Wersja skryptu (podnoś przy każdej zmianie zachowania). */
-export const SCRIPT_VERSION = '0.1.0';
+export const SCRIPT_VERSION = '0.2.0';
 
 /** Wersja formatu pliku eksportu; musi być równa EXPORT_SCHEMA_VERSION z libs/shared. */
 export const SCHEMA_VERSION = 1;

@@ -67,7 +67,7 @@ Są dwie drogi importu. Obie działają w całości w przeglądarce.
 
 ### A. Skrypt Kinoskopu (zalecane, najdokładniejsze dane)
 
-1. Zaloguj się na **filmweb.pl**.
+1. Zaloguj się na **filmweb.pl**, a potem otwórz w tej karcie `https://www.filmweb.pl/robots.txt` (prosta strona, która nie przeładuje się w trakcie importu).
 2. W Kinoskopie kliknij **„Skopiuj skrypt”**.
 3. Na karcie Filmwebu otwórz konsolę (`Ctrl+Shift+J` / `Cmd+Option+J`, w Firefoksie `Ctrl+Shift+K`), wpisz `allow pasting`, jeśli przeglądarka o to poprosi, wklej skrypt i naciśnij Enter.
 4. Przeciągnij pobrany plik `kinoskop-eksport-….json` na stronę Kinoskopu.
@@ -112,7 +112,7 @@ pnpm nx serve web           # frontend → http://localhost:4200 (proxy /api →
 
 Bez kluczy TMDB/IGDB API działa w trybie „tylko Wikidata” (mapowanie, kraje, reżyserzy, epoki, nagrody),
 a tryb demo nie potrzebuje API w ogóle. Stan wstępnej wersji, odstępstwa od SPEC i rzeczy czekające na
-autora (m.in. Faza 0 – sonda API Filmwebu): [`docs/open-questions.md`](docs/open-questions.md).
+autora: [`docs/open-questions.md`](docs/open-questions.md).
 
 ### Zmienne środowiskowe
 

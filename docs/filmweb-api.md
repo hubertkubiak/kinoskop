@@ -1,8 +1,8 @@
 # API Filmwebu – rozpoznanie (Faza 0)
 
-> **Status: NIEPOTWIERDZONE.** Faza 0 wymaga autora. Do czasu uruchomienia sondy
-> ścieżki i kształty odpowiedzi poniżej są hipotezą, a mappery działają defensywnie
-> (akceptują kilka wariantów nazw pól i głośno zgłaszają nieznany kształt).
+> **Status: POTWIERDZONE 2026-11-19** zapytaniami GET na koncie autora (przeglądarka zalogowana na
+> www.filmweb.pl). API jest nieudokumentowane i może się zmienić bez ostrzeżenia. Pełny import:
+> 4287 pozycji, 237 zapytań, ok. 3 min, 0 błędów. Kształty w `fixtures/filmweb/probe/` (wartości syntetyczne).
 
 ## Jak uruchomić sondę
 
@@ -14,22 +14,29 @@
 
 ## Endpointy
 
-| Cel | Ścieżka | Status | Uwagi |
-|---|---|---|---|
-| zalogowany użytkownik | `GET /api/v1/logged/info` | potwierdzony przez społeczność | 401/403 gdy niezalogowany |
-| oceny | `GET /api/v1/logged/vote/title/{film\|serial\|game}?page=N` | **do potwierdzenia** | czy jest stronicowane? rozmiar strony? |
-| chcę zobaczyć | `GET /api/v1/logged/want2see/{film\|serial\|game}?page=N` | **do potwierdzenia** | czy parametr `page` działa? |
-| info tytułu | `GET /api/v1/title/{id}/info` | **do potwierdzenia** | czy zawiera tylko tytuł/rok, czy więcej (nie pobieramy reszty) |
+| Cel | Ścieżka | Odpowiedź |
+|---|---|---|
+| zalogowany użytkownik | `GET /api/v1/logged/info` | `{ id, uuid, name, email, … }` – bierzemy tylko `id` i `name`; 401 gdy brak sesji |
+| oceny | `GET /api/v1/logged/vote/title/{film\|serial\|tvshow\|videogame}?page=N` | tablica po ~100: `{ entity, rate (1–10), timestamp (ms), viewDate (RRRRMMDD), seenInCinema, likesCount }`, czasem `favorite` |
+| chcę zobaczyć | `GET /api/v1/logged/want2see/{…}?page=N` | tablica `{ entity, timestamp, level, followMask }` |
+| info tytułu | `GET /api/v1/title/{id}/info` | `{ id, title, originalTitle, year, type, posterPath }` – bierzemy tylko tytuł i rok |
 
-## Pytania do rozstrzygnięcia sondą
+## Ustalenia
 
-- [ ] Nazwy pól w pozycji oceny: ID tytułu (`entity`?), ocena (`rate`?), ulubione (`favorite`?), data (`timestamp` w ms? `viewDate` RRRRMMDD?).
-- [ ] Czy ocena 0 oznacza „widziane bez oceny”?
-- [ ] Czy listy zawierają tytuł i rok? Jeśli tak: `TITLE_INFO_MODE = 'none'` i brak zapytań o info tytułu.
-- [ ] Jak kończy się paginacja (pusta tablica? 404?).
-- [ ] Czy `logged/info` zwraca `id` i `name`.
+- Rodzaj **`game` zwraca 400** – gry to `videogame`. Istnieje też `tvshow` (programy TV), który mapujemy na `serial`.
+- Paginacja: strony mają zwykle 100 pozycji, ale bywa mniej w środku listy (np. 97) – **koniec to pusta tablica**,
+  nie krótsza strona. Strony daleko za końcem zwracają 500.
+- Daty: `timestamp` to czas oceny w ms (używamy jako `ratedAt`), `viewDate` to data obejrzenia RRRRMMDD.
+- Listy nie zawierają tytułu ani roku, więc `TITLE_INFO_MODE = 'games'` zostaje (filmy i seriale łączymy przez
+  Wikidata P5032).
+- Sesja: token logowania jest w ciasteczku HttpOnly i odświeża się przy wczytaniu strony HTML. Raz zaobserwowano 401
+  w trakcie importu na karcie, która długo nie wczytywała strony; skrypt przy 401/403 raz pobiera `/` i ponawia zapytanie.
+- Strona główna potrafi się sama przeładować (zaobserwowane), co przerywa skrypt i czyści konsolę. Zalecamy
+  uruchamianie na `https://www.filmweb.pl/robots.txt`; skrypt pokazuje też panel postępu na stronie i ostrzega przed
+  opuszczeniem karty.
+- Otwarte: czy `favorite` w ocenach to pełna lista ulubionych (u autora 18 pozycji).
 
-## Decyzja tymczasowa: `TITLE_INFO_MODE = 'games'`
+## Decyzja: `TITLE_INFO_MODE = 'games'`
 
 Mapowanie Filmweb → TMDB odbywa się przez Wikidata (P5032, ~60 tys. tytułów, sprawdzone
 zapytaniem 2026-11-18). Dla gier Wikidata ma ID Filmwebu tylko w ~32 przypadkach (P3995),

@@ -205,7 +205,7 @@ Alternatywa w kreatorze: **bookmarklet** („Przeciągnij ten przycisk na pasek 
 
 Krótko, z numeracją, z zakładkami per przeglądarka (wykrywaj przeglądarkę i system, by domyślnie pokazać właściwą):
 
-1. **Zaloguj się na filmweb.pl** w tej samej przeglądarce. Otwórz dowolną stronę Filmwebu.
+1. **Zaloguj się na filmweb.pl** w tej samej przeglądarce, potem otwórz `https://www.filmweb.pl/robots.txt` (prosta strona bez skryptów Filmwebu; strona główna potrafi się sama przeładować i przerwać import – zaobserwowane 2026-11-19). Skrypt działa na każdej stronie `www.filmweb.pl`.
 2. **Otwórz konsolę:**
    - Chrome / Edge / Brave: `Ctrl+Shift+J` (Windows/Linux), `Cmd+Option+J` (macOS)
    - Firefox: `Ctrl+Shift+K` / `Cmd+Option+K`
@@ -242,14 +242,14 @@ Wymagania:
 - Czytelny postęp w konsoli: `console.log` z prefiksem i stylem (`%c`), co 25 tytułów oraz na końcu podsumowanie (liczby per typ, czas, liczba błędów).
 - Na końcu: `Blob` → `URL.createObjectURL` → kliknięcie `<a download>`. Walidacja wyniku tym samym schematem Zod nie jest możliwa bez zależności, więc skrypt robi minimalne sanity checks, a pełną walidację robi aplikacja.
 
-**Endpointy Filmwebu — DO WERYFIKACJI w Fazie 0.** Znane ze społeczności (API jest nieudokumentowane i może się zmienić):
+**Endpointy Filmwebu — potwierdzone w Fazie 0 (2026-11-19, szczegóły w `docs/filmweb-api.md`).** API jest nieudokumentowane i może się zmienić:
 
 | Cel | Oczekiwany endpoint | Status |
 |---|---|---|
 | zalogowany użytkownik | `GET /api/v1/logged/info` | potwierdzony (używany przez narzędzia open source) |
-| oceny wg typu, paginowane | `GET /api/v1/logged/vote/title/{film\|serial\|game}?page=N` | do potwierdzenia |
-| „chcę zobaczyć” | `GET /api/v1/logged/want2see/{film\|serial\|game}` | do potwierdzenia |
-| podstawowe info tytułu (tylko jeśli niezbędne do dopasowania) | `GET /api/v1/title/{id}/info` | do potwierdzenia |
+| oceny wg typu, paginowane | `GET /api/v1/logged/vote/title/{film\|serial\|tvshow\|videogame}?page=N` | potwierdzony (`game` zwraca 400) |
+| „chcę zobaczyć” | `GET /api/v1/logged/want2see/{film\|serial\|tvshow\|videogame}?page=N` | potwierdzony |
+| podstawowe info tytułu (tylko jeśli niezbędne do dopasowania) | `GET /api/v1/title/{id}/info` | potwierdzony (listy nie mają tytułu – pobierane tylko dla gier) |
 
 Wszystkie ścieżki i mapowanie pól trzymaj w jednym module (`endpoints.ts` + `mappers.ts`), żeby zmiana po stronie Filmwebu wymagała poprawki w jednym miejscu. Testy mapperów działają na fixture'ach z `fixtures/filmweb/`.
 

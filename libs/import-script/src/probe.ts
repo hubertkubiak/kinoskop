@@ -5,7 +5,7 @@
 // Nazwa i ID użytkownika są maskowane w zapisanym pliku.
 
 import { ALLOWED_HOST } from './config';
-import { ENDPOINTS, type FwKind } from './endpoints';
+import { ENDPOINTS, FW_LISTS } from './endpoints';
 import { humanPause } from './http';
 
 interface Sample {
@@ -50,7 +50,7 @@ async function main() {
   const samples: Sample[] = [];
   const info = await probe(ENDPOINTS.loggedInfo());
   samples.push(info);
-  for (const kind of ['film', 'serial', 'game'] as FwKind[]) {
+  for (const { path: kind } of FW_LISTS) {
     const votes = await probe(ENDPOINTS.votes(kind, 1));
     samples.push(votes, await probe(ENDPOINTS.votes(kind, 2)));
     samples.push(await probe(ENDPOINTS.want2see(kind, 1)));

@@ -26,6 +26,7 @@ export const IMPORT_STRINGS = {
   mobile: 'Import działa tylko na komputerze. Statystyki możesz przeglądać także na telefonie.',
   problems: [
     ['„Kinoskop: nie jesteś zalogowany”', 'Zaloguj się na filmweb.pl w tej samej przeglądarce i uruchom skrypt ponownie.'],
+    ['Wkleiłem skrypt i nic się nie dzieje', 'Po wklejeniu w prawym dolnym rogu strony pojawia się panel „Kinoskop: …” z postępem. Jeśli go nie ma: sprawdź, czy wkleiłeś cały skrypt i nacisnąłeś Enter, oraz czy przeglądarka nie czeka na wpisanie „allow pasting”. Uruchamiaj skrypt na www.filmweb.pl/robots.txt – strona główna potrafi się przeładować i wyczyścić konsolę.'],
     ['Skrypt przerwany (zamknięta karta, błąd sieci)', 'Uruchom go ponownie na tej samej karcie – postęp jest wznawiany.'],
     ['„Za dużo zapytań”', 'Skrypt sam zwalnia; przy uporczywych błędach spróbuj za kilka minut.'],
     ['Telefon lub tablet', 'Import działa tylko na komputerze, przeglądanie statystyk również na telefonie.'],
