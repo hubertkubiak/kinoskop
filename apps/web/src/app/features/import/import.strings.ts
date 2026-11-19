@@ -27,6 +27,7 @@ export const IMPORT_STRINGS = {
   problems: [
     ['„Kinoskop: nie jesteś zalogowany”', 'Zaloguj się na filmweb.pl w tej samej przeglądarce i uruchom skrypt ponownie.'],
     ['Wkleiłem skrypt i nic się nie dzieje', 'Po wklejeniu w prawym dolnym rogu strony pojawia się panel „Kinoskop: …” z postępem. Jeśli go nie ma: sprawdź, czy wkleiłeś cały skrypt i nacisnąłeś Enter, oraz czy przeglądarka nie czeka na wpisanie „allow pasting”. Uruchamiaj skrypt na www.filmweb.pl/robots.txt – strona główna potrafi się przeładować i wyczyścić konsolę.'],
+    ['Ile to trwa?', 'Same listy ocen to kilka minut. Potem skrypt sprawdza w Wikidata, które tytuły da się dopasować po identyfikatorze, a dla pozostałych pobiera tytuł i rok – przy kilku tysiącach ocen to nawet 30–40 minut. Panel pokazuje szacowany czas. Trzymaj kartę na wierzchu (może być w osobnym oknie): karty w tle przeglądarka mocno spowalnia.'],
     ['Skrypt przerwany (zamknięta karta, błąd sieci)', 'Uruchom go ponownie na tej samej karcie – postęp jest wznawiany.'],
     ['„Za dużo zapytań”', 'Skrypt sam zwalnia; przy uporczywych błędach spróbuj za kilka minut.'],
     ['Telefon lub tablet', 'Import działa tylko na komputerze, przeglądanie statystyk również na telefonie.'],

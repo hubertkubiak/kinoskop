@@ -22,7 +22,7 @@ Poniżej lista z wstępnej implementacji (2026-11-18). SPEC.md zmieniany tylko p
 | 1 | §4 `Enrichment` | dodane pola `runtimeMinutes`, `overview`, `publicRating`, `providersPL.link`, `Person.profileUrl` | wymagane przez §7.1 (czas przed ekranem), §7.3 (TMDB vote_average), §7.11 (opis dla AI), §7.6 (zdjęcie) |
 | 2 | §4 `ExportFile` | opcjonalne `scriptVersion` | wersja skryptu w pliku (§5.3) |
 | 3 | §3.1 IGDB ID | `P5794` (slug) + kwalifikator `P9043` (numeryczny) | zweryfikowane zapytaniem |
-| 4 | §3.1 Filmweb ID | `P5032` (filmy/seriale, ~60 tys.) + `P3995` (slug, jedyny z grami – ok. 32 gry) | gry dopasowujemy wyszukiwaniem IGDB, stąd skrypt pobiera info tytułu tylko dla gier (`TITLE_INFO_MODE='games'`) |
+| 4 | §3.1 Filmweb ID | `P5032` (filmy/seriale, ~60 tys.) + `P3995` (slug, jedyny z grami – ok. 32 gry) | gry dopasowujemy wyszukiwaniem IGDB, po pomiarze na prawdziwym profilu (47% pokrycia) skrypt pobiera info tytułu dla gier i tytułów nieznanych Wikidata (`TITLE_INFO_MODE='missing'`) |
 | 5 | §7.11 `temperature: 0` | nie wysyłane do Anthropic | obecne modele Claude odrzucają parametry samplingu (400); OpenRouter/Gemini dostają `temperature: 0` |
 | 6 | §7.11 model | domyślnie `claude-opus-5-5` z `effort: low`, do wyboru Sonnet 5.5 / Haiku 5.5; włączone `fallbacks: "default"` | wytyczne SDK; Haiku 5.5 to najtańsza opcja – autor może zmienić domyślny |
 | 7 | §7.8 ELK.js, wirtualizacja | układ radialny w `libs/stats`, wirtualizacja wyłączona | ADR 0001 |

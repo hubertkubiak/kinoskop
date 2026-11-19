@@ -16,6 +16,7 @@ import {
   type LoggedUser,
   type RawItem,
 } from './mappers';
+import { knownInWikidata } from './wikidata';
 
 const KINDS: FwKind[] = ['film', 'serial', 'game'];
 const STYLE = 'color:#1A1306;background:#F0B23E;padding:2px 6px;border-radius:3px;font-weight:bold';
@@ -51,12 +52,23 @@ const keepAlive = (e: BeforeUnloadEvent) => {
   e.returnValue = '';
 };
 
+/**
+ * Chrome spowalnia timery w kartach w tle (po kilku minutach nawet do 1 na minutę), a skrypt robi
+ * przerwy między zapytaniami właśnie timerami. Ostrzegamy, gdy karta przestaje być widoczna.
+ */
+const onHidden = () => {
+  if (document.visibilityState === 'hidden')
+    console.warn('Kinoskop: karta w tle – przeglądarka może spowolnić import. Wróć do niej albo przenieś ją do osobnego okna.');
+};
+
 /** Stan zapisywany po każdej stronie, żeby ponowne uruchomienie pominęło pobrane dane. */
 interface Progress {
   userId: number;
   done: string[]; // np. "votes:film:3", "info:game:123"
   items: RawItem[];
   errors: number;
+  /** Filmweb ID filmów i seriali znanych Wikidata (tryb 'missing'); brak = jeszcze nie sprawdzono. */
+  wdKnown?: number[];
 }
 
 function loadProgress(userId: number): Progress {
@@ -108,16 +120,37 @@ async function fetchPages(
   }
 }
 
+/** Filmy i seriale bez tytułu, które Wikidata zna po Filmweb ID (wynik zapamiętany w postępie). */
+async function wikidataKnown(p: Progress): Promise<Set<number>> {
+  if (p.wdKnown) return new Set(p.wdKnown);
+  const ids = [...new Set(p.items.filter((it) => it.kind !== 'game' && !it.title).map((it) => it.filmwebId))];
+  try {
+    const known = await knownInWikidata(ids, (done, total) => log(`sprawdzam tytuły w Wikidata: ${done}/${total}…`));
+    p.wdKnown = [...known];
+    saveProgress(p);
+    log(`Wikidata zna ${known.size} z ${ids.length} filmów i seriali; dla pozostałych pobiorę tytuł i rok.`);
+    return known;
+  } catch (e) {
+    // Bez Wikidata nie wiemy, czego brakuje – pobieramy info dla wszystkich (wolniej, ale nic nie ginie).
+    console.warn('Kinoskop:', (e as Error).message);
+    log('Wikidata nie odpowiada – pobiorę tytuł i rok dla wszystkich pozycji (to potrwa dłużej).');
+    return new Set();
+  }
+}
+
+const fmtMinutes = (ms: number) => (ms < 90_000 ? 'ok. 1 min' : `ok. ${Math.round(ms / 60_000)} min`);
+
 /** Dociąga tytuł i rok tam, gdzie są potrzebne do dopasowania (patrz TITLE_INFO_MODE). */
 async function fetchTitleInfo(p: Progress): Promise<void> {
   if (TITLE_INFO_MODE === 'none') return;
-  const todo = p.items.filter(
-    (it) => !it.title && (TITLE_INFO_MODE === 'all' || it.kind === 'game'),
-  );
+  const known = TITLE_INFO_MODE === 'missing' ? await wikidataKnown(p) : new Set<number>();
+  const needs = (it: RawItem) =>
+    !it.title &&
+    (it.kind === 'game' || TITLE_INFO_MODE === 'all' || (TITLE_INFO_MODE === 'missing' && !known.has(it.filmwebId)));
+  const todo = p.items.filter((it) => needs(it) && !p.done.includes(`info:${it.kind}:${it.filmwebId}`));
+  const started = Date.now();
   let n = 0;
   for (const it of todo) {
-    const tag = `info:${it.kind}:${it.filmwebId}`;
-    if (p.done.includes(tag)) continue;
     try {
       const body = await getJson(ENDPOINTS.titleInfo(it.filmwebId));
       if (body !== null) Object.assign(it, mapTitleInfo(body));
@@ -125,9 +158,14 @@ async function fetchTitleInfo(p: Progress): Promise<void> {
       if (e instanceof NotLoggedInError || e instanceof TooManyRequestsError) throw e;
       p.errors++;
     }
-    p.done.push(tag);
-    saveProgress(p);
-    if (++n % 25 === 0) log(`dane do dopasowania: ${n}/${todo.length}…`);
+    p.done.push(`info:${it.kind}:${it.filmwebId}`);
+    n++;
+    // Zapis co 10 pozycji: sessionStorage przy kilku tysiącach pozycji nie jest darmowy.
+    if (n % 10 === 0 || n === todo.length) {
+      saveProgress(p);
+      const left = ((Date.now() - started) / n) * (todo.length - n);
+      log(`tytuły do dopasowania: ${n}/${todo.length}, zostało ${fmtMinutes(left)}. Nie zamykaj tej karty.`);
+    }
   }
 }
 
@@ -165,8 +203,12 @@ export async function run(): Promise<void> {
     return;
   }
   const started = Date.now();
-  log(`start (wersja ${SCRIPT_VERSION}). Nie zamykaj ani nie przeładowuj tej karty.`);
+  log(
+    `start (wersja ${SCRIPT_VERSION}). Nie zamykaj ani nie przeładowuj tej karty i trzymaj ją na wierzchu ` +
+      '(może być w osobnym oknie) – karty w tle przeglądarka spowalnia.',
+  );
   window.addEventListener('beforeunload', keepAlive);
+  document.addEventListener('visibilitychange', onHidden);
   try {
     const user = mapLoggedInfo(await getJson(ENDPOINTS.loggedInfo()));
     const p = loadProgress(user.id);
@@ -192,5 +234,6 @@ export async function run(): Promise<void> {
     else log(`przerwano: ${(e as Error).message}. Uruchom ponownie – postęp zostanie wznowiony.`);
   } finally {
     window.removeEventListener('beforeunload', keepAlive);
+    document.removeEventListener('visibilitychange', onHidden);
   }
 }

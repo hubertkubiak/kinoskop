@@ -235,11 +235,11 @@ Wymagania:
 - Kolejność:
   1. `GET /api/v1/logged/info` → użytkownik. Przy 401/403 komunikat „nie jesteś zalogowany”.
   2. Dla `film`, `serial`, `game`: paginacja ocen oraz listy „chcę zobaczyć”.
-  3. Jeśli odpowiedzi list nie zawierają tytułu i roku, pobranie podstawowego info tytułu (tytuł, tytuł oryginalny, rok), wyłącznie do dopasowania w TMDB/Wikidata. Najpierw sprawdź w Fazie 0, czy da się tego uniknąć (np. jeśli lista zwraca te pola albo wystarczy Filmweb ID + Wikidata).
-- **Tempo jak u człowieka:** zapytania **sekwencyjnie** (jedno naraz), 400–900 ms przerwy z jitterem, retry z exponential backoff przy 429/5xx (max 3 próby), przy 429 skrypt kończy się z prośbą o ponowienie później zamiast przyspieszać. Cel: obciążenie porównywalne z przeglądaniem własnych list ocen.
+  3. Listy nie zawierają tytułu ani roku (Faza 0). Skrypt pyta publiczny endpoint SPARQL Wikidata (tylko numery Filmweb ID, P5032), które filmy i seriale da się dopasować po samym ID, i **wyłącznie dla pozostałych oraz dla gier** pobiera podstawowe info tytułu (tytuł, tytuł oryginalny, rok) – tylko te trzy pola, tylko do dopasowania w TMDB/IGDB (`TITLE_INFO_MODE = 'missing'`, decyzja autora 2026-11-19: Wikidata znała 47% tytułów autora). Gdy Wikidata nie odpowiada, info pobierane jest dla wszystkich pozycji bez tytułu.
+- **Tempo jak u człowieka:** zapytania **sekwencyjnie** (jedno naraz), 400–900 ms przerwy z jitterem, timeout 20 s na zapytanie, retry z exponential backoff przy 5xx/błędzie sieci/timeoucie (max 3 próby), przy 429 skrypt kończy się z prośbą o ponowienie później zamiast przyspieszać. Cel: obciążenie porównywalne z przeglądaniem własnych list ocen.
 - **Bez szczegółów bazy Filmwebu:** skrypt **nie** pobiera gatunków, krajów, twórców, opisów, ocen ogółu ani histogramów (sekcja 14.1). Te dane pochodzą z TMDB, IGDB i Wikidata.
 - **Wznawianie:** postęp trzymany w `sessionStorage` karty Filmwebu pod kluczem `kinoskop-progress-v1`; ponowne uruchomienie pomija pobrane strony. Klucz usuwany po sukcesie.
-- Czytelny postęp w konsoli: `console.log` z prefiksem i stylem (`%c`), co 25 tytułów oraz na końcu podsumowanie (liczby per typ, czas, liczba błędów).
+- Czytelny postęp w konsoli i w panelu na stronie: po każdej stronie listy, co 10 tytułów z szacowanym czasem do końca, ostrzeżenie o spowalnianiu kart w tle, na końcu podsumowanie (liczby per typ, czas, liczba błędów).
 - Na końcu: `Blob` → `URL.createObjectURL` → kliknięcie `<a download>`. Walidacja wyniku tym samym schematem Zod nie jest możliwa bez zależności, więc skrypt robi minimalne sanity checks, a pełną walidację robi aplikacja.
 
 **Endpointy Filmwebu — potwierdzone w Fazie 0 (2026-11-19, szczegóły w `docs/filmweb-api.md`).** API jest nieudokumentowane i może się zmienić:
@@ -249,7 +249,7 @@ Wymagania:
 | zalogowany użytkownik | `GET /api/v1/logged/info` | potwierdzony (używany przez narzędzia open source) |
 | oceny wg typu, paginowane | `GET /api/v1/logged/vote/title/{film\|serial\|tvshow\|videogame}?page=N` | potwierdzony (`game` zwraca 400) |
 | „chcę zobaczyć” | `GET /api/v1/logged/want2see/{film\|serial\|tvshow\|videogame}?page=N` | potwierdzony |
-| podstawowe info tytułu (tylko jeśli niezbędne do dopasowania) | `GET /api/v1/title/{id}/info` | potwierdzony (listy nie mają tytułu – pobierane tylko dla gier) |
+| podstawowe info tytułu (tylko jeśli niezbędne do dopasowania) | `GET /api/v1/title/{id}/info` | potwierdzony (listy nie mają tytułu – pobierane dla gier i tytułów nieznanych Wikidata) |
 
 Wszystkie ścieżki i mapowanie pól trzymaj w jednym module (`endpoints.ts` + `mappers.ts`), żeby zmiana po stronie Filmwebu wymagała poprawki w jednym miejscu. Testy mapperów działają na fixture'ach z `fixtures/filmweb/`.
 
@@ -670,8 +670,8 @@ Regulamin Filmwebu zakazuje m.in.:
 Konsekwencją naruszenia może być zablokowanie lub usunięcie konta użytkownika (art. 4 ust. 15, art. 7 ust. 3). Ryzyko dotyczy więc **przede wszystkim użytkowników**, a pośrednio autora, który dostarcza narzędzie.
 
 **Decyzje ograniczające ryzyko:**
-1. **Import tylko danych własnych użytkownika** (jego oceny, daty, ulubione, listy). To dane, które sam wytworzył; użytkownik ma też prawo do ich przenoszenia (art. 20 RODO). Skrypt **nie** pobiera metadanych bazy Filmwebu (gatunki, kraje, twórcy, opisy, oceny ogółu), więc nie ma ekstrakcji zawartości bazy.
-2. **Tempo jak u człowieka:** zapytania sekwencyjne z przerwami, łącznie kilkadziesiąt zapytań na import (5.3), uruchamiane ręcznie przez zalogowanego użytkownika w jego własnej przeglądarce.
+1. **Import tylko danych własnych użytkownika** (jego oceny, daty, ulubione, listy). To dane, które sam wytworzył; użytkownik ma też prawo do ich przenoszenia (art. 20 RODO). Skrypt **nie** pobiera metadanych bazy Filmwebu (gatunki, kraje, twórcy, opisy, oceny ogółu), więc nie ma ekstrakcji zawartości bazy. **Jedyny wyjątek** (decyzja autora 2026-11-19): tytuł, tytuł oryginalny i rok pozycji z list użytkownika, których nie da się dopasować przez Wikidata – wyłącznie jako klucz do wyszukania w TMDB/IGDB (5.3 p. 3); bez tego ok. połowa ocen zostaje niedopasowana.
+2. **Tempo jak u człowieka:** zapytania sekwencyjne z przerwami, od kilkudziesięciu (same listy) do kilku tysięcy zapytań przy dużym profilu z wieloma tytułami nieznanymi Wikidata (ok. 0,7 s na zapytanie; import wznawialny) (5.3), uruchamiane ręcznie przez zalogowanego użytkownika w jego własnej przeglądarce.
 3. **Backend nigdy nie łączy się z Filmwebem** i nie przechowuje żadnych danych pochodzących z Filmwebu poza mapowaniem `filmwebId → tmdbId/wikidataId` (identyfikatory; mapowanie i tak jest publicznie dostępne w Wikidata, P5032, CC0).
 4. **Brak hotlinkowania** grafik Filmwebu; plakaty z TMDB/IGDB.
 5. **Jasna informacja dla użytkownika** przed skopiowaniem skryptu (checkbox wymagany do odblokowania przycisku „Skopiuj skrypt”): „Skrypt automatyzuje pobranie Twoich własnych ocen z Filmwebu. Regulamin Filmwebu ogranicza korzystanie z programów automatycznych; korzystasz z importu na własną odpowiedzialność. Alternatywa: poproś Filmweb o kopię swoich danych (art. 15 i 20 RODO).”

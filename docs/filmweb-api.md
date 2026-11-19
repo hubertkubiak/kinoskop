@@ -27,8 +27,8 @@
 - Paginacja: strony mają zwykle 100 pozycji, ale bywa mniej w środku listy (np. 97) – **koniec to pusta tablica**,
   nie krótsza strona. Strony daleko za końcem zwracają 500.
 - Daty: `timestamp` to czas oceny w ms (używamy jako `ratedAt`), `viewDate` to data obejrzenia RRRRMMDD.
-- Listy nie zawierają tytułu ani roku, więc `TITLE_INFO_MODE = 'games'` zostaje (filmy i seriale łączymy przez
-  Wikidata P5032).
+- Listy nie zawierają tytułu ani roku. Filmy i seriale łączymy przez Wikidata P5032, a dla tytułów, których
+  Wikidata nie zna, skrypt pobiera info tytułu (`TITLE_INFO_MODE = 'missing'`, niżej).
 - Sesja: token logowania jest w ciasteczku HttpOnly i odświeża się przy wczytaniu strony HTML. Raz zaobserwowano 401
   w trakcie importu na karcie, która długo nie wczytywała strony; skrypt przy 401/403 raz pobiera `/` i ponawia zapytanie.
 - Strona główna potrafi się sama przeładować (zaobserwowane), co przerywa skrypt i czyści konsolę. Zalecamy
@@ -36,10 +36,14 @@
   opuszczeniem karty.
 - Otwarte: czy `favorite` w ocenach to pełna lista ulubionych (u autora 18 pozycji).
 
-## Decyzja: `TITLE_INFO_MODE = 'games'`
+## Decyzja: `TITLE_INFO_MODE = 'missing'` (2026-11-19)
 
-Mapowanie Filmweb → TMDB odbywa się przez Wikidata (P5032, ~60 tys. tytułów, sprawdzone
-zapytaniem 2026-11-18). Dla gier Wikidata ma ID Filmwebu tylko w ~32 przypadkach (P3995),
-więc gry dopasowujemy wyszukiwaniem IGDB po tytule – stąd skrypt dociąga info tytułu
-**tylko dla gier**. Po Fazie 0 decyzję trzeba potwierdzić lub zmienić w
-`libs/import-script/src/config.ts`.
+Pierwotnie `'games'`: Wikidata ma ID Filmwebu dla ~60 tys. tytułów (P5032), a dla gier tylko ~32 (P3995), więc
+info tytułu pobierane było tylko dla gier. Pomiar na profilu autora (zapytanie SPARQL po wszystkich ID, 2026-11-19):
+**Wikidata zna 1944 z 4107 filmów i seriali (47%)**, w tym głównie znane tytuły; brakuje m.in. krótkich metraży,
+animacji i mniej znanych filmów. Bez tytułu nie da się ich wyszukać w TMDB – 2242 pozycje zostawały niedopasowane.
+
+Teraz skrypt po pobraniu list wysyła do publicznego SPARQL Wikidata same numery ID (z przeglądarki, CORS działa,
+strona Filmwebu nie ma CSP – sprawdzone 2026-11-19) i pobiera `/api/v1/title/{id}/info` tylko dla brakujących
+oraz gier. U autora to ok. 2300 dodatkowych zapytań (~30 min, wznawialne). Gdy Wikidata nie odpowiada, info
+pobierane jest dla wszystkich pozycji bez tytułu.

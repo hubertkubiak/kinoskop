@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('./config', () => ({ DELAY_MS: { min: 0, max: 0 }, MAX_ATTEMPTS: 3 }));
+vi.mock('./config', () => ({ DELAY_MS: { min: 0, max: 0 }, MAX_ATTEMPTS: 3, REQUEST_TIMEOUT_MS: 20_000 }));
 
 const { BadRequestError, getJson, NotLoggedInError } = await import('./http');
 
@@ -27,6 +27,20 @@ describe('getJson', () => {
   it('reports not logged in when 401 persists after renewal', async () => {
     vi.stubGlobal('fetch', vi.fn(async (path: string) => (path === '/' ? res(200) : res(401))));
     await expect(getJson('/api/v1/logged/info')).rejects.toBeInstanceOf(NotLoggedInError);
+  });
+
+  it('retries a request that timed out instead of hanging', async () => {
+    vi.useFakeTimers();
+    const fetch = vi.fn<(path: string, init?: RequestInit) => Promise<Response>>()
+      .mockRejectedValueOnce(new DOMException('signal timed out', 'TimeoutError'))
+      .mockResolvedValueOnce(res(200, { id: 1 }));
+    vi.stubGlobal('fetch', fetch);
+    const p = getJson('/api/v1/title/1/info');
+    await vi.runAllTimersAsync();
+    await expect(p).resolves.toEqual({ id: 1 });
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(fetch.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+    vi.useRealTimers();
   });
 
   it('throws BadRequestError on 400 (unknown list kind)', async () => {

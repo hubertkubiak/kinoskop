@@ -1,6 +1,6 @@
 // Zapytania do Filmwebu: wyłącznie GET, jedno naraz, z przerwami i ponawianiem.
 
-import { DELAY_MS, MAX_ATTEMPTS } from './config';
+import { DELAY_MS, MAX_ATTEMPTS, REQUEST_TIMEOUT_MS } from './config';
 
 export class NotLoggedInError extends Error {}
 export class TooManyRequestsError extends Error {}
@@ -17,7 +17,8 @@ export const getRequestCount = () => requestCount;
 
 /**
  * Pobiera JSON spod ścieżki na tej samej domenie.
- * 401/403 → jedno odnowienie sesji, potem NotLoggedInError; 429 → kończymy (nie przyspieszamy); 5xx → do 3 prób z backoffem.
+ * 401/403 → jedno odnowienie sesji, potem NotLoggedInError; 429 → kończymy (nie przyspieszamy);
+ * 5xx, błąd sieci i brak odpowiedzi przez REQUEST_TIMEOUT_MS → do MAX_ATTEMPTS prób z backoffem.
  * 404 → null (np. brak listy danego typu); 400 → BadRequestError.
  */
 /**
@@ -43,8 +44,10 @@ export async function getJson(path: string): Promise<unknown> {
         method: 'GET',
         credentials: 'include',
         headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
     } catch (e) {
+      // Błąd sieci albo przekroczony czas (TimeoutError) – ponawiamy z przerwą.
       if (attempt >= MAX_ATTEMPTS) throw e;
       await sleep(1000 * 2 ** attempt);
       continue;
