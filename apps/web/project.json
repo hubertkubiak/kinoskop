@@ -81,6 +81,37 @@
           "optimization": false,
           "extractLicenses": false,
           "sourceMap": true
+        },
+        "render": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "1.2mb",
+              "maximumError": "1.6mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all",
+          "define": {
+            "KS_API_BASE_URL": "\"__KS_API_BASE_URL__\"",
+            "KS_PUBLIC_IMPORT_ENABLED": "true"
+          },
+          "index": {
+            "input": "apps/web/src/index.prod.html",
+            "output": "index.html"
+          },
+          "optimization": {
+            "scripts": true,
+            "styles": {
+              "minify": true,
+              "inlineCritical": false
+            },
+            "fonts": true
+          }
         }
       },
       "dependsOn": [

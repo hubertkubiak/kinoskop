@@ -149,9 +149,29 @@ Pełna specyfikacja: [`SPEC.md`](SPEC.md).
 
 > 🤖 **Epoki przez AI** działają na kluczu użytkownika (Anthropic, OpenRouter z darmowymi modelami albo Gemini). Klucz podaje się w aplikacji, zostaje w przeglądarce i nie trafia na serwer Kinoskopu, więc po stronie serwera nie ma żadnego klucza LLM.
 
-## ☁️ Deploy (Render) — w przyszłości
+## ☁️ Deploy (Render)
 
-Obecnie aplikacja działa tylko lokalnie. Docelowo repo będzie zawierać Blueprint [`render.yaml`](render.yaml): front jako **Static Site**, API jako **Web Service**. W panelu Render wybierz *New → Blueprint*, wskaż repo i uzupełnij sekrety. Na darmowym planie API usypia po 15 minutach bez ruchu, a cache metadanych jest czyszczony przy restarcie. Aplikacja jest na to przygotowana: wybudza API w tle, a katalog nagród dostaje jako gotowy plik z cotygodniowej GitHub Action.
+Repo zawiera Blueprint [`render.yaml`](render.yaml): API (`kinoskop-api`, Docker, plan free, Frankfurt) i front
+(`kinoskop`, Static Site). Nic nie wdraża się samo – tworzysz to w swoim koncie Render:
+
+1. Render Dashboard → **New → Blueprint** → wskaż to repozytorium.
+2. Render zapyta o wartości `sync: false`:
+   - `TMDB_API_TOKEN` – Twój token TMDB (klucz operatora, wspólny dla wszystkich użytkowników),
+   - `WIKIDATA_CONTACT` – e-mail lub URL do nagłówka User-Agent,
+   - `WEB_ORIGIN` – adres frontu, np. `https://kinoskop.onrender.com`,
+   - `KS_API_BASE_URL` – adres API, np. `https://kinoskop-api.onrender.com`,
+   - opcjonalnie `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `OMDB_API_KEY` (puste = wyłączone).
+3. Dokładne adresy zobaczysz dopiero po utworzeniu usług. Jeśli różnią się od wpisanych, popraw `WEB_ORIGIN`
+   (API) i `KS_API_BASE_URL` (front) w zakładce *Environment* i zrób ponowny deploy frontu – adres API jest
+   wstrzykiwany do builda (`tools/render/inject-api-url.mjs`, razem z CSP).
+
+Darmowy plan: API usypia po 15 minutach bez ruchu (wybudzenie ok. minuty – aplikacja pokazuje „Rozgrzewam
+projektor…”), a cache metadanych znika przy restarcie, więc pierwszy import po przerwie jest wolniejszy.
+Limit TMDB (20 zapytań/s) jest wspólny dla wszystkich użytkowników instancji.
+
+Import skryptem jest włączony także w tej wersji (decyzja autora, SPEC §12). Każdy, kto go używa, robi to na
+własnym koncie i na własną odpowiedzialność wobec regulaminu serwisu – aplikacja pokazuje to ostrzeżenie przed
+skopiowaniem skryptu.
 
 ## 🔒 Prywatność
 

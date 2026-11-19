@@ -1,0 +1,53 @@
+# Render Blueprint (SPEC §8.4, docs/adr/0004).
+# Render Dashboard → New → Blueprint → this repository. Values marked `sync: false` are asked for once,
+# when the Blueprint is created; change them later in each service's Environment tab.
+services:
+  # API (Fastify) from the portable Dockerfile – no dependency on Render's Node/pnpm detection.
+  - type: web
+    name: kinoskop-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      # TMDB v4 read access token – the operator's key, shared by all users (never a user's key).
+      - key: TMDB_API_TOKEN
+        sync: false
+      # E-mail or URL for the Wikidata User-Agent (Wikidata policy).
+      - key: WIKIDATA_CONTACT
+        sync: false
+      # Public URL of the static site below, e.g. https://kinoskop.onrender.com (CORS).
+      - key: WEB_ORIGIN
+        sync: false
+      # Optional: games (IGDB via Twitch) and critics (OMDb); leave empty to disable.
+      - key: TWITCH_CLIENT_ID
+        sync: false
+      - key: TWITCH_CLIENT_SECRET
+        sync: false
+      - key: OMDB_API_KEY
+        sync: false
+      - key: TRUST_PROXY
+        value: 'true'
+      - key: NODE_ENV
+        value: production
+
+  # Front-end (Angular) as a static site: always available, even while the free API sleeps.
+  - type: web
+    name: kinoskop
+    runtime: static
+    buildCommand: >-
+      npx --yes pnpm@12.21.0 install --frozen-lockfile &&
+      npx --yes pnpm@12.21.0 nx build web --configuration=render &&
+      node tools/render/inject-api-url.mjs dist/apps/web/browser
+    staticPublishPath: ./dist/apps/web/browser
+    routes:
+      # Client-side routing: every unknown path serves the SPA.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      # Public URL of kinoskop-api, e.g. https://kinoskop-api.onrender.com (injected at build time).
+      - key: KS_API_BASE_URL
+        sync: false

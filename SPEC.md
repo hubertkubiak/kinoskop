@@ -491,8 +491,8 @@ Ograniczenia darmowego planu, które kształtują architekturę:
 2. **Wybudzanie API w tle:** front wywołuje `GET /api/health` zaraz po starcie. Import w konsoli i tak trwa minuty, więc API zdąży się obudzić. Gdy użytkownik wrzuci plik, a API jeszcze śpi, pokazujemy „Rozgrzewam projektor…” z loaderem i automatycznym ponowieniem.
 3. **Katalog nagród nie jest budowany na serwerze w runtime.** GitHub Action raz w tygodniu generuje `awards.json` z Wikidata, commituje go (albo publikuje jako artefakt) i wyzwala deploy. Backend tylko go serwuje, więc działa natychmiast po zimnym starcie.
 4. **Cache wzbogaceń za interfejsem `CacheStore`** z implementacją SQLite. Na darmowym planie cache jest efemeryczny: działa w obrębie życia instancji, a po restarcie odbudowuje się od zera (wolniejsze pierwsze importy, ale poprawne). Ścieżka rozwoju: plan Starter + persistent disk, bez zmian w kodzie (zmienia się tylko `CACHE_DB_PATH`). Interfejs pozwala później dodać implementację Postgres.
-5. **`render.yaml` (Blueprint)** w repo: Static Site (build `pnpm nx build web`, publish `dist/apps/web/browser`, reguła rewrite SPA `/* → /index.html`), Web Service (Node 24, build i start z Nx, health check `/api/health`), zmienne środowiskowe jako `sync: false` dla sekretów.
-6. CORS w API tylko dla `WEB_ORIGIN`; rate limit per IP.
+5. **`render.yaml` (Blueprint)** w repo (ADR 0004): Static Site (`pnpm nx build web --configuration=render`, potem `tools/render/inject-api-url.mjs` wstawia `KS_API_BASE_URL` w miejsce placeholdera i dopisuje origin API do CSP `connect-src`; publish `dist/apps/web/browser`; rewrite SPA `/* → /index.html`) oraz API jako Web Service z `apps/api/Dockerfile` (plan free, region Frankfurt, health check `/api/health`, `TRUST_PROXY=true`, żeby rate limit widział IP klienta zza proxy). Sekrety jako `sync: false`.
+6. CORS w API tylko dla `WEB_ORIGIN`; rate limit per IP (za proxy Render: `TRUST_PROXY=true`).
 
 Dockerfile dla API zostaje w repo dla przenośności (inny hosting, lokalne `docker compose`).
 
@@ -617,6 +617,7 @@ Dockerfile dla API zostaje w repo dla przenośności (inny hosting, lokalne `doc
 
 1. Nazwa: **Kinoskop**.
 2. **v1: tylko lokalnie.** Kod w repozytorium GitHub, aplikacja uruchamiana na komputerze autora (`pnpm nx serve …` lub `docker compose up`). Żadnego publicznego deployu.
+   - **Zmiana 2026-11-19 (decyzja autora, ADR 0004):** repo zawiera gotowy Blueprint `render.yaml`, a autor może sam wdrożyć instancję na Render, żeby udostępnić aplikację znajomym. Wdrożenie wykonuje autor w swoim koncie; Claude Code niczego nie wdraża. Import skryptem jest w tej instancji **włączony** (`PUBLIC_IMPORT_ENABLED=true` w konfiguracji `render`) – świadoma decyzja autora wbrew domyślnemu `false` z §14.1 p. 6; ryzyko z regulaminu ponosi konto osoby, która uruchamia skrypt. Repo jest **publiczne** (wbrew zaleceniu §12.2).
 3. Docelowo (po decyzji autora): hosting **Render** (sekcja 8.4) i aplikacja **publiczna**, niekomercyjna, po przejściu checklisty z sekcji 14.6. Architektura od początku jest do tego przygotowana, ale Faza 8 nie jest częścią v1.
 4. Epoki przez AI: **tak, wyłącznie na kluczu użytkownika** (sekcja 7.11).
 

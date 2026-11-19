@@ -43,6 +43,8 @@ Poniżej lista z wstępnej implementacji (2026-11-18). SPEC.md zmieniany tylko p
   listami „Twój gust” (§7.8, ADR 0002). TMDB 20 req/s (§8.2).
 - 2026-11-19: import w dwóch plikach (część 1 od razu, część 2 scalana), pamięć tytułów skryptu w `localStorage`
   filmweb.pl, czytelne ostrzeżenie o karcie w tle (§5.3, §14.1, ADR 0003). Bez skracania przerw między zapytaniami.
+- 2026-11-19: Blueprint Render dla instancji dla znajomych, z włączonym importem skryptem; repo publiczne
+  (§8.4, §12, ADR 0004). Wdraża autor; obraz API niesprawdzony lokalnie (Docker Desktop nie był uruchomiony).
 
 ## Znane ograniczenia wstępnej wersji
 
