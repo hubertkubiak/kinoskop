@@ -10,9 +10,16 @@ import { Poster } from '../../ui/poster';
 type SortKey = 'taste' | 'public' | 'year' | 'runtime';
 const SERVICES_KEY = 'myServices';
 
+function originalIfDifferent(item: LibraryItem): string | undefined {
+  const o = item.enrichment?.originalTitle ?? item.originalTitle;
+  return o && o !== displayTitle(item) ? o : undefined;
+}
+
 interface Row {
   item: LibraryItem;
   title: string;
+  /** Original title when it differs from the displayed one (helps to recognise the title). */
+  original?: string;
   score?: number;
   providers: { type: string; list: Provider[] }[];
 }
@@ -52,6 +59,7 @@ export class Want2seePage {
       return {
         item,
         title: displayTitle(item),
+        original: originalIfDifferent(item),
         score: tasteScore(item, profile),
         providers: pp
           ? [

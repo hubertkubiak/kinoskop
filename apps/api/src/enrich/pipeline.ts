@@ -27,6 +27,8 @@ const TTL_ENRICHMENT = 30 * DAY;
 const TTL_PERSON = 90 * DAY;
 const TTL_MISS = 7 * DAY;
 const CAST_SIZE = 10;
+/** Bump when the shape or sources of a built enrichment change (v2: Polish posters). */
+const NS_ENRICHMENT = 'enrichment-v2';
 
 export interface Sources {
   wikidata: WikidataClient;
@@ -59,7 +61,7 @@ export class EnrichmentPipeline {
     const misses: EnrichRequestItem[] = [];
 
     for (const it of items) {
-      const hit = this.cache.get<Enrichment>('enrichment', `${it.kind}:${it.filmwebId}`);
+      const hit = this.cache.get<Enrichment>(NS_ENRICHMENT, `${it.kind}:${it.filmwebId}`);
       if (hit) {
         results.push(hit);
         cacheHits++;
@@ -96,7 +98,7 @@ export class EnrichmentPipeline {
     }
     await this.addNationalities(fresh);
     for (const e of fresh) {
-      this.cache.set('enrichment', `${e.kind}:${e.filmwebId}`, e, TTL_ENRICHMENT);
+      this.cache.set(NS_ENRICHMENT, `${e.kind}:${e.filmwebId}`, e, TTL_ENRICHMENT);
       results.push(e);
     }
     return { results, errors, cacheHits };
@@ -179,7 +181,8 @@ export class EnrichmentPipeline {
       }
     } else if (match.tmdbId && this.sources.tmdb.enabled) {
       const k = tmdbKind(kind);
-      const d = await this.cached(`tmdb-${k}`, String(match.tmdbId), () => this.sources.tmdb.details(k, match.tmdbId!));
+      // "-v2": details now include Polish posters (images); older cache entries lack them.
+      const d = await this.cached(`tmdb2-${k}`, String(match.tmdbId), () => this.sources.tmdb.details(k, match.tmdbId!));
       if (d) this.applyTmdb(e, d);
     }
     if (!wd && !e.title && !e.originalTitle) return null;
@@ -219,7 +222,8 @@ export class EnrichmentPipeline {
     e.title = pl?.title || pl?.name || e.title || d.title || d.name;
     e.originalTitle = d.original_title ?? d.original_name;
     e.year = yearOf(d.release_date ?? d.first_air_date) ?? e.year;
-    e.posterUrl = posterUrl(d.poster_path);
+    // Polish poster when TMDB has one, otherwise the default (usually English) one.
+    e.posterUrl = posterUrl(d.images?.posters.find((p) => p.iso_639_1 === 'pl')?.file_path ?? d.poster_path);
     e.overview = pl?.overview || d.overview || undefined;
     if (d.genres.length) e.genres = mapGenres(d.genres.map((g) => g.name), e.kind);
     const countries = d.production_countries.map((c) => c.iso_3166_1);

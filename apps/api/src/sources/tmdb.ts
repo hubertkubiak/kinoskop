@@ -4,7 +4,8 @@ import { fetchJson } from '../http/fetch-json';
 
 /**
  * TMDB v3 client. Endpoints verified in the TMDB OpenAPI spec (developer.themoviedb.org):
- *  GET /3/movie/{id}, /3/tv/{id} with append_to_response=credits,keywords,watch/providers,translations
+ *  GET /3/movie/{id}, /3/tv/{id} with append_to_response=credits,keywords,watch/providers,translations,images
+ *  and include_image_language=pl,null (Polish posters first; checked against the live API 2026-11-19)
  *  GET /3/search/movie (query, primary_release_year), GET /3/search/tv (query, first_air_date_year)
  * Movie keywords come as `keywords.keywords[]`, TV keywords as `keywords.results[]`.
  * Watch providers: `results.PL.{link, flatrate, rent, buy}[]` (data by JustWatch – attribution required).
@@ -55,6 +56,7 @@ export const TmdbDetailsSchema = z.object({
       ),
     })
     .optional(),
+  images: z.object({ posters: z.array(z.object({ iso_639_1: z.string().nullish(), file_path: z.string() })).default([]) }).optional(),
   translations: z
     .object({
       translations: z.array(
@@ -111,8 +113,11 @@ export class TmdbClient {
   }
 
   details(kind: TmdbKind, id: number): Promise<TmdbDetails | null> {
-    const append = 'credits,keywords,watch/providers,translations';
-    return this.get(`/${kind}/${id}?language=en-US&append_to_response=${append}`, TmdbDetailsSchema);
+    const append = 'credits,keywords,watch/providers,translations,images';
+    return this.get(
+      `/${kind}/${id}?language=en-US&include_image_language=pl,null&append_to_response=${append}`,
+      TmdbDetailsSchema,
+    );
   }
 
   async search(kind: TmdbKind, query: string, year?: number): Promise<TmdbSearchResult[]> {

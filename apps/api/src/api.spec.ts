@@ -164,3 +164,36 @@ describe('API', () => {
     expect((await a.inject({ method: 'GET', url: '/api/awards', headers: { 'if-none-match': '"x"' } })).statusCode).toBe(304);
   });
 });
+
+describe('TMDB details', () => {
+  it('prefers a Polish poster and the Polish title, and finds titles Wikidata does not know by search', async () => {
+    const { EnrichmentPipeline } = await import('./enrich/pipeline');
+    const details = vi.fn(async () => ({
+      id: 97367,
+      title: 'The Place Beyond the Pines',
+      original_title: 'The Place Beyond the Pines',
+      release_date: '2012-09-07',
+      poster_path: '/en.jpg',
+      genres: [],
+      production_countries: [{ iso_3166_1: 'US' }],
+      origin_country: [],
+      created_by: [],
+      images: { posters: [{ iso_639_1: null, file_path: '/neutral.jpg' }, { iso_639_1: 'pl', file_path: '/pl.jpg' }] },
+      translations: { translations: [{ iso_639_1: 'pl', data: { title: 'Drugie Oblicze' } }] },
+    }));
+    const search = vi.fn(async () => [{ id: 97367, title: 'Drugie Oblicze', original_title: 'The Place Beyond the Pines', release_date: '2012-09-07' }]);
+    const sources = {
+      wikidata: { query: vi.fn(async () => []) },
+      tmdb: { enabled: true, details, search },
+      igdb: { enabled: false },
+      omdb: { enabled: false },
+    } as unknown as Sources;
+    const p = new EnrichmentPipeline(sources, new MemoryCacheStore());
+    const res = await p.enrich([{ filmwebId: 614352, kind: 'film', title: 'Drugie oblicze', originalTitle: 'The Place Beyond the Pines', year: 2012 }]);
+    expect(res.results[0]).toMatchObject({
+      title: 'Drugie Oblicze',
+      posterUrl: 'https://image.tmdb.org/t/p/w342/pl.jpg',
+      match: { method: 'tmdb-search', tmdbId: 97367 },
+    });
+  });
+});
