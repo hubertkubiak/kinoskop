@@ -2,10 +2,15 @@ import { EXPORT_SCHEMA_VERSION, type ExportFile, type ExportItem } from './expor
 import { itemKey, type Kind, type ListKind } from './kinds';
 
 /**
- * Import of CSV files produced by other tools, in the Letterboxd import format
- * (e.g. Filmweb2Letterboxd: `Title,Year,WatchedDate,Rating10`) or the Letterboxd export
- * (`Date,Name,Year,Letterboxd URI,Rating`). Only the user's own data is taken: title and year
- * (for matching), rating and date. Files carry no Filmweb ID, so each title gets a local key.
+ * Import of CSV files produced by other tools. Two families:
+ * - Letterboxd import format (e.g. Filmweb2Letterboxd `Title,Year,WatchedDate,Rating10`) or the
+ *   Letterboxd export (`Date,Name,Year,Letterboxd URI,Rating`): no Filmweb ID, so each title gets
+ *   a local key and is matched by title and year.
+ * - Filmweb2Letterboxd archive tables (`Filmweb2Letterboxd_wstepny_….csv` without titles,
+ *   `Filmweb2Letterboxd_pelny_….csv` with titles): one row per list entry with `List`, `Kind` and
+ *   `FilmwebID`, so items keep their Filmweb ID and are matched through Wikidata exactly like
+ *   the console script's export; titles, when present, are used for the rest.
+ * Only the user's own data is taken: rating, dates, favourites, lists, and title/year for matching.
  */
 
 export interface CsvSource {
@@ -15,17 +20,24 @@ export interface CsvSource {
 
 export interface CsvFileSummary {
   name: string;
-  kind: Kind;
-  list: ListKind;
+  /** From the file name; absent for archive tables, whose rows carry their own kind and list. */
+  kind?: Kind;
+  list?: ListKind;
   rows: number;
   skipped: number;
 }
 
 export interface CsvImportSummary {
   files: CsvFileSummary[];
+  /** Files recognised but deliberately not imported, with the reason shown in the preview. */
+  ignoredFiles: { name: string; reason: string }[];
   counts: Record<Kind, { rated: number; want2see: number }>;
   unrated: number;
   duplicates: number;
+  /** Items with a Filmweb ID (archive tables), matched through Wikidata first. */
+  withFilmwebId: number;
+  /** Items with a Filmweb ID but no title: only those known to Wikidata can be matched. */
+  withoutTitle: number;
 }
 
 export type CsvImportResult =
@@ -79,11 +91,36 @@ export function classifyCsvFileName(name: string): { kind: Kind; list: ListKind 
   return { kind, list };
 }
 
+const headerLine = (text: string): string => {
+  const body = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  return body.split(/\r?\n/, 1)[0]?.toLowerCase() ?? '';
+};
+const hasColumn = (header: string, name: string) => new RegExp(`(^|,)"?${name}"?(,|$)`).test(header);
+
 /** True when the text looks like a CSV with a title column (used for format detection). */
 export function looksLikeTitleCsv(text: string): boolean {
-  const body = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
-  const first = body.split(/\r?\n/, 1)[0]?.toLowerCase() ?? '';
-  return /(^|,)"?(title|name)"?(,|$)/.test(first);
+  const first = headerLine(text);
+  return hasColumn(first, 'title') || hasColumn(first, 'name');
+}
+
+/** True for a Filmweb2Letterboxd archive table (`List,Kind,FilmwebID,…`). */
+export function looksLikeIdCsv(text: string): boolean {
+  const first = headerLine(text);
+  return hasColumn(first, 'filmwebid') && hasColumn(first, 'list') && hasColumn(first, 'kind');
+}
+
+/** Filmweb2Letterboxd error report (`Filmweb2Letterboxd_bledy.csv`): recognised, never imported. */
+function isErrorReport(name: string, text: string): boolean {
+  const first = headerLine(text);
+  return /filmweb2letterboxd_bledy/i.test(name) || (hasColumn(first, 'error') && hasColumn(first, 'id') && !looksLikeTitleCsv(text));
+}
+
+/** Letterboxd-format files written by Filmweb2Letterboxd next to its archive tables. */
+const isFw2lLetterboxdFile = (name: string) => /^filmweb2letterboxd_(watched|watchlist)_/i.test(name);
+
+/** True when importCsvFiles can handle the file (used for format detection in the app). */
+export function looksLikeImportCsv(name: string, text: string): boolean {
+  return looksLikeTitleCsv(text) || looksLikeIdCsv(text) || isErrorReport(name, text);
 }
 
 const normTitle = (t: string) => t.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase();
@@ -132,19 +169,104 @@ function parseYear(raw: string | undefined): number | undefined {
   return Number.isInteger(n) && n >= 1870 && n <= 2100 ? n : undefined;
 }
 
+/** ISO timestamp column (Filmweb2Letterboxd `Timestamp` = when the rating was given). */
+function parseIsoTimestamp(raw: string | undefined): string | undefined {
+  const v = raw?.trim();
+  if (!v || !/^\d{4}-\d{2}-\d{2}T/.test(v)) return undefined;
+  const ms = Date.parse(v);
+  return Number.isNaN(ms) ? undefined : new Date(ms).toISOString();
+}
+
+/** Archive `Kind` / `List` values → Kinoskop kinds (TV shows count as series, like the script). */
+const ARCHIVE_KIND: Record<string, Kind> = { film: 'film', serial: 'serial', tvshow: 'serial', videogame: 'game' };
+const ARCHIVE_LIST: Record<string, ListKind> = { watched: 'rated', watchlist: 'want2see' };
+
 /**
- * Converts one or more CSV files into an in-memory ExportFile. Duplicates (same kind, title and
- * year) are merged; a title both rated and on the watchlist stays rated.
+ * One archive row → item with its Filmweb ID; `null` = invalid row, `'not-interested'` =
+ * watchlist level 0 ("nie interesuje mnie"), which is not a "want to see" entry.
+ */
+function archiveRowToItem(row: Record<string, string>): ExportItem | null | 'not-interested' {
+  const kind = ARCHIVE_KIND[row['kind']?.trim().toLowerCase() ?? ''];
+  const list = ARCHIVE_LIST[row['list']?.trim().toLowerCase() ?? ''];
+  const id = Number(row['filmwebid']?.trim());
+  if (!kind || !list || !Number.isInteger(id) || id <= 0) return null;
+  if (list === 'want2see' && row['watchlistlevel']?.trim() === '0') return 'not-interested';
+  const item: ExportItem = { filmwebId: id, kind, list };
+  if (list === 'rated') {
+    const rating = parseRating(row);
+    // Same meaning as the console script: the time the rating was given, else the viewing date.
+    const ratedAt = parseIsoTimestamp(row['timestamp']) ?? parseDate(row);
+    if (rating !== undefined) item.rating = rating;
+    if (ratedAt) item.ratedAt = ratedAt;
+    if (row['favorite']?.trim() === '1') item.favorite = true;
+  }
+  const title = row['title']?.trim();
+  const original = row['originaltitle']?.trim();
+  const year = parseYear(row['year']);
+  if (title && title.length <= 500) item.title = title;
+  if (original && original.length <= 500 && original !== title) item.originalTitle = original;
+  if (year !== undefined) item.year = year;
+  return item;
+}
+
+/** Keeps the rated entry of a duplicate and fills in title fields the kept one lacks. */
+function mergeDuplicate(prev: ExportItem, next: ExportItem): ExportItem {
+  const [keep, other] = prev.list === 'want2see' && next.list === 'rated' ? [next, prev] : [prev, next];
+  return {
+    ...keep,
+    ...(keep.title || !other.title ? {} : { title: other.title }),
+    ...(keep.originalTitle || !other.originalTitle ? {} : { originalTitle: other.originalTitle }),
+    ...(keep.year !== undefined || other.year === undefined ? {} : { year: other.year }),
+  };
+}
+
+/**
+ * Converts one or more CSV files into an in-memory ExportFile. Duplicates (same kind and Filmweb
+ * ID, or same kind, title and year) are merged; a title both rated and on the watchlist stays rated.
  */
 export function importCsvFiles(sources: CsvSource[], now = new Date()): CsvImportResult {
   if (!sources.length) return { ok: false, message: 'Nie wybrano plików.' };
   const byKey = new Map<string, ExportItem>();
+  const byId = new Map<string, ExportItem>();
   const files: CsvFileSummary[] = [];
+  const ignoredFiles: CsvImportSummary['ignoredFiles'] = [];
   let duplicates = 0;
+  let archiveWithoutTitles = false;
+
+  // With an archive table in the batch, Filmweb2Letterboxd's own Letterboxd files hold the same
+  // entries without IDs – importing both would duplicate every title.
+  const hasArchive = sources.some((s) => looksLikeIdCsv(s.text));
 
   for (const src of sources) {
+    if (isErrorReport(src.name, src.text)) {
+      ignoredFiles.push({ name: src.name, reason: 'raport błędów, nie zawiera ocen' });
+      continue;
+    }
+    if (hasArchive && isFw2lLetterboxdFile(src.name) && !looksLikeIdCsv(src.text)) {
+      ignoredFiles.push({ name: src.name, reason: 'te same pozycje są w tabeli z identyfikatorami tytułów' });
+      continue;
+    }
     const rows = parseCsv(src.text);
     const header = rows.shift()?.map((h) => h.trim().toLowerCase());
+
+    if (header && looksLikeIdCsv(src.text)) {
+      if (!header.includes('title')) archiveWithoutTitles = true;
+      const summary: CsvFileSummary = { name: src.name, rows: rows.length, skipped: 0 };
+      for (const cells of rows) {
+        const item = archiveRowToItem(Object.fromEntries(header.map((h, i) => [h, cells[i] ?? ''])));
+        if (item === null || item === 'not-interested') {
+          summary.skipped++;
+          continue;
+        }
+        const key = itemKey(item);
+        const prev = byId.get(key);
+        if (prev) duplicates++;
+        byId.set(key, prev ? mergeDuplicate(prev, item) : item);
+      }
+      files.push(summary);
+      continue;
+    }
+
     const titleCol = header?.findIndex((h) => h === 'title' || h === 'name') ?? -1;
     if (!header || titleCol < 0) {
       return { ok: false, message: `Plik „${src.name}” nie ma kolumny Title ani Name.` };
@@ -185,9 +307,9 @@ export function importCsvFiles(sources: CsvSource[], now = new Date()): CsvImpor
     files.push(summary);
   }
 
-  // Assign local ids; resolve (unlikely) hash collisions with a salt.
-  const used = new Set<string>();
-  const items: ExportItem[] = [];
+  // Items with a Filmweb ID keep it; the rest get local ids (hash collisions resolved with a salt).
+  const used = new Set<string>(byId.keys());
+  const items: ExportItem[] = [...byId.values()];
   for (const it of byKey.values()) {
     const title = it.title ?? '';
     let salt = 0;
@@ -196,7 +318,14 @@ export function importCsvFiles(sources: CsvSource[], now = new Date()): CsvImpor
     used.add(itemKey({ kind: it.kind, filmwebId: id }));
     items.push({ ...it, filmwebId: id });
   }
-  if (!items.length) return { ok: false, message: 'Pliki nie zawierają żadnych tytułów.' };
+  if (!items.length) {
+    return {
+      ok: false,
+      message: ignoredFiles.length
+        ? `Wybrane pliki nie zawierają ocen do wczytania (pominięte: ${ignoredFiles.map((f) => f.name).join(', ')}).`
+        : 'Pliki nie zawierają żadnych tytułów.',
+    };
+  }
   if (items.length > 50_000) return { ok: false, message: 'Za dużo pozycji (limit 50 000).' };
 
   const counts: CsvImportSummary['counts'] = {
@@ -205,17 +334,26 @@ export function importCsvFiles(sources: CsvSource[], now = new Date()): CsvImpor
     game: { rated: 0, want2see: 0 },
   };
   let unrated = 0;
+  let withoutTitle = 0;
   for (const it of items) {
     counts[it.kind][it.list]++;
     if (it.list === 'rated' && it.rating === undefined) unrated++;
+    if (it.filmwebId > 0 && !it.title && !it.originalTitle) withoutTitle++;
   }
 
   const file: ExportFile = {
     schemaVersion: EXPORT_SCHEMA_VERSION,
     exportedAt: now.toISOString(),
     source: 'csv',
+    // An archive table without titles is part 1 of a two-part import: the later table with
+    // titles (`…_pelny_…`) is merged into it like the script's part 2 (docs/adr/0003).
+    ...(archiveWithoutTitles && withoutTitle > 0 ? { part: 'base' as const } : {}),
     user: { id: 0, name: '' },
     items,
   };
-  return { ok: true, file, summary: { files, counts, unrated, duplicates } };
+  return {
+    ok: true,
+    file,
+    summary: { files, ignoredFiles, counts, unrated, duplicates, withFilmwebId: byId.size, withoutTitle },
+  };
 }

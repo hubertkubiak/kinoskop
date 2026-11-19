@@ -103,7 +103,8 @@
       <section class="ks-card p-5 mb-6" aria-labelledby="ks-csv-h">
         <h3 id="ks-csv-h" class="font-semibold mb-2">{{ s.csvTitle }}</h3>
         <p class="text-sm text-ks-muted mb-2">{{ s.csvLead }}</p>
-        <p class="text-sm text-ks-muted">{{ s.csvLimits }}</p>
+        <p class="text-sm text-ks-muted mb-2">{{ s.csvLimits }}</p>
+        <p class="text-sm text-ks-muted">{{ s.csvArchive }}</p>
       </section>
 
       @if (importer.pending(); as p) {
@@ -122,6 +123,16 @@
           <p class="text-sm text-ks-muted mb-1">
             Pliki: {{ p.summary.files.length }}. Bez oceny: {{ p.summary.unrated }}. Pominięte duplikaty: {{ p.summary.duplicates }}.
           </p>
+          @if (p.summary.withFilmwebId) {
+            <p class="text-sm text-ks-muted mb-1" data-testid="csv-filmweb-ids">
+              Z identyfikatorem tytułu: {{ p.summary.withFilmwebId }} – dopasujemy je tak jak plik ze skryptu.
+            </p>
+          }
+          @if (p.summary.withoutTitle) {
+            <p class="text-sm p-3 mb-3 rounded-ks-sm bg-ks-surface-2" role="note" data-testid="csv-without-titles">
+              {{ s.csvWithoutTitles(p.summary.withoutTitle) }}
+            </p>
+          }
           @if (importer.api.awake() && !importer.api.config().tmdbEnabled) {
             <p class="text-sm p-3 mb-3 rounded-ks-sm bg-ks-surface-2" role="note" data-testid="csv-no-tmdb">
               <strong>Uwaga:</strong> API działa bez klucza TMDB, więc tytułów z CSV nie da się dopasować – zobaczysz
@@ -132,11 +143,20 @@
             <summary class="cursor-pointer">Szczegóły plików</summary>
             <ul class="mt-2 space-y-1">
               @for (f of p.summary.files; track f.name) {
-                <li><code>{{ f.name }}</code> → {{ kindLabels[f.kind].many }}, {{ f.list === 'rated' ? 'oceny' : 'chcę zobaczyć' }}: {{ f.rows }} wierszy
+                <li><code>{{ f.name }}</code> →
+                  @if (f.kind && f.list) {
+                    {{ kindLabels[f.kind].many }}, {{ f.list === 'rated' ? 'oceny' : 'chcę zobaczyć' }}:
+                  } @else {
+                    wszystkie listy z identyfikatorami tytułów:
+                  }
+                  {{ f.rows }} wierszy
                   @if (f.skipped) {
                     <span>(pominięte: {{ f.skipped }})</span>
                   }
                 </li>
+              }
+              @for (f of p.summary.ignoredFiles; track f.name) {
+                <li><code>{{ f.name }}</code> → pominięty: {{ f.reason }}</li>
               }
             </ul>
           </details>

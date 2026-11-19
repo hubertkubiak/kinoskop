@@ -104,7 +104,11 @@ export class LibraryStore {
   /** Whether `file` is a later export of the user whose import is loaded (merge instead of replace). */
   isSameUser(file: ExportFile): boolean {
     const m = this.meta();
-    return m?.mode === 'import' && file.source === 'filmweb' && m.userId !== undefined && m.userId === file.user.id;
+    if (m?.mode !== 'import') return false;
+    if (file.source === 'filmweb') return m.userId !== undefined && m.userId === file.user.id;
+    // CSV carries no user, so only one case is merged: a Filmweb2Letterboxd archive table without
+    // titles (part 'base', user id 0) followed by the table with titles (SPEC §5.4).
+    return m.part === 'base' && m.userId === 0 && file.user.id === 0;
   }
 
   /**

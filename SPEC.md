@@ -229,7 +229,7 @@ Do instrukcji dołącz zrzuty ekranu w `docs/import/` (placeholdery w fazie 1, p
 Wymagania:
 - Czysty TypeScript → esbuild → **jedna IIFE, ES2020, bez zależności, niezminifikowana** (wersja do konsoli), czytelna (obecnie ok. 530 linii po zbudowaniu, z komentarzami po polsku). Osobny build zminifikowany dla bookmarkletu.
 - Wersja skryptu i `schemaVersion` wbudowane w plik.
-- Sprawdza `location.hostname === 'www.filmweb.pl'`; w przeciwnym razie wypisuje komunikat i kończy.
+- Sprawdza `location.hostname === 'www.filmweb.pl'`; w przeciwnym razie wypisuje komunikat i kończy. Gdy działa na innej stronie niż `/robots.txt`, pokazuje (w konsoli i stale w panelu) podpowiedź, żeby uruchamiać go na `/robots.txt` – zwykłe strony Filmwebu potrafią się same przeładować i przerwać import; potwierdzone także przy długim eksporcie Filmweb2Letterboxd (2026-11-19).
 - **Wyłącznie GET**, `credentials: 'include'`, same-origin.
 - Kolejność:
   1. `GET /api/v1/logged/info` → użytkownik. Przy 401/403 komunikat „nie jesteś zalogowany”.
@@ -263,9 +263,14 @@ Druga, równorzędna ścieżka dla osób, które mają już eksport (decyzja aut
 - Obsługiwane: CSV z wierszem nagłówka i kolumną `Title` lub `Name`; opcjonalnie `Year`, `WatchedDate` / `Watched Date` / `Date` (`RRRR-MM-DD`), `Rating10` (1–10) lub `Rating` (0,5–5 gwiazdek → ×2). Obejmuje to pliki Filmweb2Letterboxd (`Title,Year,WatchedDate,Rating10`) i eksport z Letterboxd (`Date,Name,Year,Letterboxd URI,Rating`).
 - Kilka plików naraz. Rodzaj i lista z nazwy pliku: `videogame`/`game` → gra, `serial`/`tvshow`/`series` → serial, inaczej film; `watchlist`/`want` → „chcę zobaczyć”, inaczej oceny.
 - Duplikaty (rodzaj + znormalizowany tytuł + rok) są scalane; tytuł obecny w ocenach i na liście „chcę zobaczyć” zostaje oceniony.
-- Pliki nie mają Filmweb ID ani ulubionych. Każda pozycja dostaje **deterministyczny, ujemny** lokalny klucz (FNV-1a z rodzaju, tytułu i roku), więc ponowny import zachowuje dopasowania z cache.
+- Pliki w formacie Letterboxd nie mają Filmweb ID ani ulubionych (wyjątek: tabele archiwum Filmweb2Letterboxd, niżej). Każda pozycja dostaje **deterministyczny, ujemny** lokalny klucz (FNV-1a z rodzaju, tytułu i roku), więc ponowny import zachowuje dopasowania z cache.
 - Wzbogacanie pomija etap 1 (Wikidata po Filmweb ID) i od razu wysyła tytuł i rok (etap 2, 14.4). Bez klucza TMDB (filmy, seriale) lub IGDB (gry) pozycji nie da się dopasować; podgląd importu o tym ostrzega.
 - Konwersja wyłącznie w przeglądarce (`libs/shared/src/csv-import.ts`); z pliku brane są tylko dane własne użytkownika (tytuł i rok do dopasowania, ocena, data).
+- **Tabele archiwum Filmweb2Letterboxd** (decyzja autora 2026-11-19): `Filmweb2Letterboxd_wstepny_RRRR-MM-DD.csv` (bez tytułów, zapisywany zaraz po listach) i `Filmweb2Letterboxd_pelny_RRRR-MM-DD.csv` (z tytułami), rozpoznawane po kolumnach `List`, `Kind`, `FilmwebID`. Jeden wiersz na wpis listy; `Kind` `film`/`serial`/`tvshow`/`videogame` → film/serial/serial/gra, `List` `watched`/`watchlist` → oceny / „chcę zobaczyć”, `Rating10`, `Timestamp` (czas oceny → `ratedAt`, w razie braku `WatchedDate`), `Favorite` = `1`, `WatchlistLevel` = `0` („nie interesuje mnie”) pomijany, `Title` (polski) / `OriginalTitle` / `Year`.
+  - Pozycje zachowują **prawdziwy Filmweb ID**, więc wzbogacanie idzie jak dla pliku ze skryptu: etap 1 (Wikidata P5032), a etap 2 tylko dla pozycji z tytułem. Z pliku wstępnego da się więc dopasować wyłącznie tytuły znane Wikidata; podgląd importu podaje ich liczbę i podpowiada wczytanie pliku pełnego.
+  - Plik wstępny jest częścią 1 (`part: 'base'`, `user.id = 0`); późniejszy plik CSV jest wtedy **scalany** z wczytanymi danymi jak część 2 skryptu (ADR 0003), więc dopasowania zostają.
+  - W tej samej paczce pomijane są: raport błędów `Filmweb2Letterboxd_bledy.csv`, pliki Letterboxd tego narzędzia (`Filmweb2Letterboxd_watched_…`, `…_watchlist_…` – te same wpisy bez ID) oraz surowe archiwum `Filmweb2Letterboxd_archiwum_….json`; podgląd wymienia pominięte pliki z powodem. Pliki innych narzędzi z tej samej paczki są wczytywane normalnie.
+  - Import CSV nadal nie generuje zapytań do Filmwebu (14.1 p. 7).
 - Filmatyk (`filmatyk.dat`) świadomie nieobsługiwany: projekt nierozwijany od 2020 r., a plik zawiera zapisaną sesję logowania do Filmwebu.
 
 ---

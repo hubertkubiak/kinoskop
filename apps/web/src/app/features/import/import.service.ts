@@ -5,7 +5,7 @@ import {
   EnrichmentSchema,
   type ExportFile,
   importCsvFiles,
-  looksLikeTitleCsv,
+  looksLikeImportCsv,
   parseExportFile,
 } from '@kinoskop/shared';
 import { z } from 'zod';
@@ -42,9 +42,22 @@ export class ImportService {
     }
     this.busy.set(true);
     try {
-      const sources = await Promise.all(files.map(async (f) => ({ name: f.name, text: await f.text() })));
+      const all = await Promise.all(files.map(async (f) => ({ name: f.name, text: await f.text() })));
       const isJson = (s: { name: string; text: string }) =>
         /\.json$/i.test(s.name) || s.text.trimStart().startsWith('{');
+      // Filmweb2Letterboxd's raw JSON archive is not a Kinoskop export; its CSV tables carry the
+      // same data. Dropped together with them, it is skipped; alone, the user is pointed to them.
+      const isFw2lArchive = (s: { name: string; text: string }) =>
+        isJson(s) && /"script"\s*:\s*"Filmweb2Letterboxd"/.test(s.text.slice(0, 500));
+      const fw2lArchives = all.filter(isFw2lArchive);
+      const sources = all.filter((s) => !isFw2lArchive(s));
+      if (!sources.length) {
+        this.error.set(
+          `„${fw2lArchives[0].name}” to surowe archiwum Filmweb2Letterboxd. Wczytaj zamiast niego plik ` +
+            'Filmweb2Letterboxd_pelny_….csv (z tytułami) albo Filmweb2Letterboxd_wstepny_….csv.',
+        );
+        return false;
+      }
       const json = sources.filter(isJson);
       if (json.length) {
         if (sources.length > 1) {
@@ -59,10 +72,10 @@ export class ImportService {
         await this.apply(result.file);
         return true;
       }
-      const unknown = sources.find((s) => !looksLikeTitleCsv(s.text));
+      const unknown = sources.find((s) => !looksLikeImportCsv(s.name, s.text));
       if (unknown) {
         this.error.set(
-          `Nie rozpoznaję formatu pliku „${unknown.name}”. Obsługiwane: kinoskop-eksport-….json oraz CSV z kolumną Title (format Letterboxd).`,
+          `Nie rozpoznaję formatu pliku „${unknown.name}”. Obsługiwane: kinoskop-eksport-….json, CSV z kolumną Title (format Letterboxd) oraz tabele Filmweb2Letterboxd z kolumną FilmwebID.`,
         );
         return false;
       }
@@ -70,6 +83,9 @@ export class ImportService {
       if (!result.ok) {
         this.error.set(result.message);
         return false;
+      }
+      for (const a of fw2lArchives) {
+        result.summary.ignoredFiles.push({ name: a.name, reason: 'surowe archiwum – te same dane są w tabelach CSV' });
       }
       this.pending.set({ file: result.file, summary: result.summary });
       // Title matching needs TMDB; refresh feature flags so the preview can warn when it is missing.

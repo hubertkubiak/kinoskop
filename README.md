@@ -84,6 +84,12 @@ Takie pliki nie mają identyfikatorów tytułów ani ulubionych, więc tytuły s
 Wymaga to klucza `TMDB_API_TOKEN` (dla gier `TWITCH_*`), a część pozycji może trzeba będzie potwierdzić
 w widoku **Weryfikacja**. Szczegóły: SPEC §5.4.
 
+Wyjątek to tabele archiwum z Filmweb2Letterboxd: `Filmweb2Letterboxd_wstepny_….csv` (bez tytułów, powstaje po
+kilku minutach) i `Filmweb2Letterboxd_pelny_….csv` (z tytułami). Mają identyfikatory Filmwebu, ulubione i gry, więc
+Kinoskop dopasowuje je tak jak plik ze skryptu. Plik wstępny możesz wczytać od razu (dopasujemy tytuły znane
+Wikidata), a pełny później, bo uzupełni dane bez utraty dopasowań. Możesz przeciągnąć cały folder pobranych plików:
+raport błędów, surowe archiwum JSON i pliki Letterboxd tego narzędzia zostaną pominięte.
+
 Chcesz tylko zobaczyć, co potrafi aplikacja? Kliknij **„Zobacz demo”**. To fikcyjny profil.
 
 ## 🛠️ Uruchomienie lokalne (dla dewelopera)

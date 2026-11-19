@@ -18,6 +18,10 @@ export const IMPORT_STRINGS = {
     'Kinoskop wczyta też pliki CSV w formacie Letterboxd – np. z konwerterów ocen do tego formatu (Title, Year, WatchedDate, Rating10) albo eksport z Letterboxd (Name, Year, Rating). Możesz wybrać kilka plików naraz; rodzaj (film, serial, gra) i listę (oceny, „chcę zobaczyć”) rozpoznamy po nazwie pliku.',
   csvLimits:
     'Takie pliki nie zawierają identyfikatorów tytułów ani ulubionych, więc tytuły dopasowujemy po nazwie i roku (wymaga klucza TMDB w API). Część pozycji może trzeba będzie potwierdzić w widoku Weryfikacja. Najdokładniejsze dane da skrypt powyżej.',
+  csvArchive:
+    'Wyjątek: tabele archiwum z Filmweb2Letterboxd (Filmweb2Letterboxd_wstepny_….csv i Filmweb2Letterboxd_pelny_….csv) mają identyfikatory tytułów, ulubione i gry, więc dopasujemy je tak samo jak plik ze skryptu. Plik wstępny (bez tytułów) możesz wczytać od razu, a plik pełny (z tytułami) później – uzupełni wczytane dane bez utraty dopasowań. Pozostałe pliki z tej samej paczki pominiemy.',
+  csvWithoutTitles: (n: number) =>
+    `${n} pozycji nie ma tytułu: dopasujemy tylko te, które zna Wikidata. Gdy Filmweb2Letterboxd zapisze plik Filmweb2Letterboxd_pelny_….csv (z tytułami), wczytaj go tutaj – uzupełni resztę bez utraty dopasowań.`,
   previewTitle: 'Sprawdź, co wczytamy',
   previewConfirm: 'Importuj',
   previewCancel: 'Anuluj',
@@ -32,7 +36,7 @@ export const IMPORT_STRINGS = {
     ['Skrypt przerwany (zamknięta karta, błąd sieci)', 'Uruchom go ponownie na tej samej karcie – postęp jest wznawiany.'],
     ['„Za dużo zapytań”', 'Skrypt sam zwalnia; przy uporczywych błędach spróbuj za kilka minut.'],
     ['Telefon lub tablet', 'Import działa tylko na komputerze, przeglądanie statystyk również na telefonie.'],
-    ['Mój plik CSV nie jest rozpoznawany', 'Plik musi mieć wiersz nagłówka z kolumną Title (albo Name). Opcjonalnie: Year, WatchedDate (RRRR-MM-DD), Rating10 (1–10) lub Rating (0,5–5 gwiazdek).'],
+    ['Mój plik CSV nie jest rozpoznawany', 'Plik musi mieć wiersz nagłówka z kolumną Title (albo Name). Opcjonalnie: Year, WatchedDate (RRRR-MM-DD), Rating10 (1–10) lub Rating (0,5–5 gwiazdek). Tabele archiwum Filmweb2Letterboxd rozpoznajemy po kolumnach List, Kind i FilmwebID.'],
     ['Plik nie przechodzi walidacji', 'Komunikat wskaże wersję schematu. Upewnij się, że używasz najnowszego skryptu i zgłoś problem, jeśli błąd się powtarza.'],
   ] as const,
 } as const;
