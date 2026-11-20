@@ -13,7 +13,6 @@ import { KpiTile } from '../../../ui/kpi-tile/kpi-tile';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [KpiTile, ChartCard],
   templateUrl: './overview-page.html',
-  styleUrl: './overview-page.scss',
 })
 export class OverviewPage {
   private readonly fs = inject(FiltersStore);

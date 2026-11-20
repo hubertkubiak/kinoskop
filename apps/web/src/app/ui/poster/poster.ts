@@ -6,7 +6,6 @@ import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block shrink-0 overflow-hidden rounded-ks-sm bg-ks-surface-2 border border-ks-border' },
   templateUrl: './poster.html',
-  styleUrl: './poster.scss',
 })
 export class Poster {
   readonly src = input<string>();

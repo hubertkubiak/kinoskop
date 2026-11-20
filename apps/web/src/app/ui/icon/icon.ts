@@ -84,7 +84,6 @@ export type IconName =
   ],
   host: { class: 'inline-flex shrink-0', 'aria-hidden': 'true' },
   templateUrl: './icon.html',
-  styleUrl: './icon.scss',
 })
 export class Icon {
   readonly name = input.required<IconName>();

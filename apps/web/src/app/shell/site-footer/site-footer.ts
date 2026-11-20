@@ -7,7 +7,6 @@ import { BRAND } from '@kinoskop/shared';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink],
   templateUrl: './site-footer.html',
-  styleUrl: './site-footer.scss',
 })
 export class SiteFooter {
   readonly brand = BRAND;

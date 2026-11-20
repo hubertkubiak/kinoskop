@@ -13,7 +13,6 @@ export interface ConfirmData {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block ks-card p-6 max-w-md', role: 'alertdialog', 'aria-labelledby': 'ks-confirm-title' },
   templateUrl: './confirm-dialog.html',
-  styleUrl: './confirm-dialog.scss',
 })
 export class ConfirmDialog {
   readonly data = inject<ConfirmData>(DIALOG_DATA);

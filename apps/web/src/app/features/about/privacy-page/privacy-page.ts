@@ -6,6 +6,5 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block max-w-3xl' },
   templateUrl: './privacy-page.html',
-  styleUrl: './privacy-page.scss',
 })
 export class PrivacyPage {}

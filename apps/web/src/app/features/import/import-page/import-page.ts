@@ -16,7 +16,6 @@ import { ImportService } from '../import.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Icon, FilmLeader, RouterLink, SiteFooter],
   templateUrl: './import-page.html',
-  styleUrl: './import-page.scss',
 })
 export class ImportPage {
   private readonly clipboard = inject(Clipboard);

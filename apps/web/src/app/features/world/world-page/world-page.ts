@@ -14,7 +14,6 @@ type Metric = 'count' | 'avg';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ChartCard],
   templateUrl: './world-page.html',
-  styleUrl: './world-page.scss',
 })
 export class WorldPage {
   private readonly fs = inject(FiltersStore);

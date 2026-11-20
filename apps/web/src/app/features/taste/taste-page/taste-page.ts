@@ -24,7 +24,6 @@ const MIN_TITLES = 5;
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Poster, RouterLink, Ticket],
   templateUrl: './taste-page.html',
-  styleUrl: './taste-page.scss',
 })
 export class TastePage {
   private readonly fs = inject(FiltersStore);

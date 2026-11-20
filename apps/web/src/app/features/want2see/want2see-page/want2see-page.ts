@@ -29,7 +29,6 @@ interface Row {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ScrollingModule, Poster],
   templateUrl: './want2see-page.html',
-  styleUrl: './want2see-page.scss',
 })
 export class Want2seePage {
   private readonly fs = inject(FiltersStore);

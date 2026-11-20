@@ -14,7 +14,6 @@ import { Ticket } from '../../../ui/ticket/ticket';
   imports: [Icon, Poster, Ticket],
   host: { class: 'block ks-card p-5 h-full overflow-y-auto w-[min(420px,100vw)]' },
   templateUrl: './creator-panel.html',
-  styleUrl: './creator-panel.scss',
 })
 export class CreatorPanel {
   readonly row = inject<PersonRow>(DIALOG_DATA);

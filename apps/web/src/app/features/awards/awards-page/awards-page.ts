@@ -19,7 +19,6 @@ const BOOKMARK = 'path://M0,0 L10,0 L10,14 L5,10 L0,14 Z';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ChartCard, Poster],
   templateUrl: './awards-page.html',
-  styleUrl: './awards-page.scss',
 })
 export class AwardsPage {
   private readonly fs = inject(FiltersStore);

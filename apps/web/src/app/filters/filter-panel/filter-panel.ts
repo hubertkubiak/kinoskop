@@ -13,7 +13,6 @@ import { FilterOptions, type Option } from '../filter-options';
   imports: [Icon],
   host: { class: 'block' },
   templateUrl: './filter-panel.html',
-  styleUrl: './filter-panel.scss',
 })
 export class FilterPanel {
   readonly fs = inject(FiltersStore);

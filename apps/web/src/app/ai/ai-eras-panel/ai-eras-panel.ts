@@ -12,7 +12,6 @@ import { EraClassifier } from '../era-classifier.service';
   imports: [FilmLeader, Icon],
   host: { class: 'block' },
   templateUrl: './ai-eras-panel.html',
-  styleUrl: './ai-eras-panel.scss',
 })
 export class AiErasPanel {
   readonly key = inject(AiKeyStore);

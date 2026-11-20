@@ -22,7 +22,6 @@ interface SearchState {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Poster],
   templateUrl: './verification-page.html',
-  styleUrl: './verification-page.scss',
 })
 export class VerificationPage {
   private readonly store = inject(LibraryStore);

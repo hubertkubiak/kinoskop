@@ -13,7 +13,6 @@ import { fmtAvg } from '../../../core/format';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ChartCard],
   templateUrl: './genres-page.html',
-  styleUrl: './genres-page.scss',
 })
 export class GenresPage {
   private readonly fs = inject(FiltersStore);

@@ -9,8 +9,7 @@ import { CreatorPanel } from '../creator-panel/creator-panel';
 @Component({
   selector: 'ks-creators-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './creators-page.html',
-  styleUrl: './creators-page.scss',
+  templateUrl: './creators-page.html',
 })
 export class CreatorsPage {
   private readonly fs = inject(FiltersStore);

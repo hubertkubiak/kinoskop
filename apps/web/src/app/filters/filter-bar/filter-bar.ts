@@ -20,7 +20,6 @@ interface Chip {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [Icon, FilterPanel],
   templateUrl: './filter-bar.html',
-  styleUrl: './filter-bar.scss',
 })
 export class FilterBar {
   readonly fs = inject(FiltersStore);

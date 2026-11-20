@@ -9,7 +9,6 @@ import { FilmLeader } from '../../ui/film-leader/film-leader';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, FilmLeader],
   templateUrl: './status-banners.html',
-  styleUrl: './status-banners.scss',
 })
 export class StatusBanners {
   readonly store = inject(LibraryStore);

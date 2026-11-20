@@ -6,7 +6,6 @@ import { BRAND } from '@kinoskop/shared';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block max-w-3xl' },
   templateUrl: './about-page.html',
-  styleUrl: './about-page.scss',
 })
 export class AboutPage {
   readonly brand = BRAND;

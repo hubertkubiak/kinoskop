@@ -8,7 +8,6 @@ const KEY = 'kinoskop-theme';
   selector: 'ks-theme-toggle',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './theme-toggle.html',
-  styleUrl: './theme-toggle.scss',
 })
 export class ThemeToggle {
   private readonly charts = inject(ChartTheme);

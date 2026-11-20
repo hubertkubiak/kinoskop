@@ -22,7 +22,6 @@ let uid = 0;
   imports: [NgxEchartsDirective, Icon],
   host: { class: 'block ks-card p-4' },
   templateUrl: './chart-card.html',
-  styleUrl: './chart-card.scss',
 })
 export class ChartCard {
   readonly theme = inject(ChartTheme);

@@ -14,8 +14,7 @@ const MONTHS = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', '
   selector: 'ks-eras-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ChartCard, AiErasPanel],
-  templateUrl: './eras-page.html',
-  styleUrl: './eras-page.scss',
+  templateUrl: './eras-page.html',
 })
 export class ErasPage {
   readonly fs = inject(FiltersStore);
