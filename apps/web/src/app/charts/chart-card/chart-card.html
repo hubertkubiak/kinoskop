@@ -1,0 +1,42 @@
+<div class="flex items-start justify-between gap-3 mb-2">
+  <div>
+    <h2 [id]="headingId" class="font-display text-xl uppercase tracking-wide">{{ heading() }}</h2>
+    @if (subtitle()) { <p class="text-xs text-ks-muted">{{ subtitle() }}</p> }
+  </div>
+  @if (table()) {
+    <div class="flex gap-1 shrink-0">
+      <button type="button" class="ks-btn text-xs !px-2 !py-1" [attr.aria-pressed]="asTable()" (click)="asTable.set(!asTable())">
+        <ks-icon name="table" [size]="14" /> {{ asTable() ? 'Pokaż wykres' : 'Pokaż jako tabelę' }}
+      </button>
+      @if (asTable()) {
+        <button type="button" class="ks-btn text-xs !px-2 !py-1" (click)="csv()" aria-label="Pobierz CSV">
+          <ks-icon name="download" [size]="14" /> CSV
+        </button>
+      }
+    </div>
+  }
+</div>
+<ng-content select="[slot=controls]" />
+@if (asTable() && table(); as t) {
+  <div class="overflow-auto" [style.max-height]="height()">
+    <table class="ks-table" [attr.aria-labelledby]="headingId">
+      <thead><tr>@for (c of t.columns; track $index) { <th scope="col">{{ c }}</th> }</tr></thead>
+      <tbody>
+        @for (r of t.rows; track $index) {
+          <tr>@for (v of r; track $index) { <td>{{ v ?? '–' }}</td> }</tr>
+        }
+      </tbody>
+    </table>
+  </div>
+} @else if (empty()) {
+  <p class="text-sm text-ks-muted py-8 text-center">{{ emptyText() }}</p>
+} @else {
+  @defer (on viewport) {
+    <div echarts [options]="option()" [theme]="theme.theme()" [autoResize]="true" [style.height]="height()"
+      role="img" [attr.aria-label]="heading() + ' – wykres; dane dostępne w widoku tabeli'"
+      (chartClick)="chartClick.set($event)"></div>
+  } @placeholder {
+    <div [style.height]="height()"></div>
+  }
+}
+<ng-content />

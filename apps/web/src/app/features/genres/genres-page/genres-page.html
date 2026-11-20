@@ -1,0 +1,23 @@
+<h1 class="font-display text-4xl uppercase mb-4">Gatunki</h1>
+<div role="tablist" aria-label="Typ" class="flex gap-2 mb-5">
+  @for (k of kinds; track k) {
+    <button type="button" role="tab" class="ks-chip pr-3" [attr.aria-selected]="kind() === k"
+      [class.!border-ks-accent]="kind() === k" (click)="kind.set(k)">{{ labels[k].many }}</button>
+  }
+</div>
+
+<div class="grid gap-4 xl:grid-cols-2">
+  <ks-chart-card heading="Liczba tytułów wg gatunku" [subtitle]="top() ? 'Top: ' + top() : undefined"
+    [option]="countOption()" [table]="countTable()" [height]="barHeight()" [empty]="rows().length === 0">
+    <p class="text-xs text-ks-muted mt-2">
+      Gatunki pochodzą z {{ kind() === 'game' ? 'IGDB' : 'TMDB' }} (zmapowane na polskie nazwy). Liczby mogą się nieco
+      różnić od tych w serwisie, z którego pochodzą oceny, bo bazy klasyfikują gatunki nieco inaczej.
+    </p>
+  </ks-chart-card>
+  <ks-chart-card heading="Średnia ocena wg gatunku" subtitle="Gatunki z mniej niż 3 tytułami wyszarzone"
+    [option]="avgOption()" [table]="countTable()" [height]="barHeight()" [empty]="rows().length === 0" />
+  <ks-chart-card heading="Udział gatunków" [option]="treemapOption()" [table]="countTable()" height="360px"
+    [empty]="rows().length === 0" />
+  <ks-chart-card heading="Gatunek w czasie" subtitle="Udział gatunków w ocenach rok po roku (100%)"
+    [option]="shareOption()" [table]="shareTable()" height="360px" [empty]="share().years.length < 2" />
+</div>

@@ -3,18 +3,19 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { BRAND } from '@kinoskop/shared';
 import { DataResetService } from '../core/data-reset.service';
 import { LibraryStore } from '../core/library.store';
-import { Icon } from '../ui/icon';
+import { Icon } from '../ui/icon/icon';
 import { NAV_ITEMS } from './nav';
-import { StatusBanners } from './status-banners';
-import { SiteFooter } from './site-footer';
-import { FilterBar } from '../filters/filter-bar';
-import { ThemeToggle } from './theme-toggle';
+import { StatusBanners } from './status-banners/status-banners';
+import { SiteFooter } from './site-footer/site-footer';
+import { FilterBar } from '../filters/filter-bar/filter-bar';
+import { ThemeToggle } from './theme-toggle/theme-toggle';
 
 @Component({
   selector: 'ks-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, StatusBanners, SiteFooter, FilterBar, ThemeToggle],
   templateUrl: './shell.html',
+  styleUrl: './shell.scss',
 })
 export class Shell {
   readonly store = inject(LibraryStore);

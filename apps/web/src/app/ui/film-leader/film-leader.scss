@@ -1,0 +1,5 @@
+.leader { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--ks-accent); position: relative;
+  display: grid; place-items: center; font-family: var(--ks-font-display); font-size: 20px; color: var(--ks-accent); }
+.leader::before { content: ''; position: absolute; inset: 3px; border-radius: 50%;
+  background: conic-gradient(var(--ks-surface-2) var(--p), transparent 0); }
+.leader span { position: relative; }

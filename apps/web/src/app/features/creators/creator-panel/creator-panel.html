@@ -1,0 +1,23 @@
+<div class="flex justify-between items-start gap-3 mb-4">
+  <div class="flex gap-3 items-center">
+    <ks-poster class="w-16 h-20" [src]="row.person.profileUrl" [title]="row.person.name" />
+    <div>
+      <h2 id="ks-creator-name" class="font-display text-2xl uppercase">{{ row.person.name }}</h2>
+      <p class="text-sm text-ks-muted">{{ nationality() }}</p>
+      <p class="text-sm tabular">{{ row.count }} tytułów · śr. {{ avg(row.avg) }}</p>
+    </div>
+  </div>
+  <button type="button" class="ks-btn !p-1.5" aria-label="Zamknij" (click)="ref.close()"><ks-icon name="close" /></button>
+</div>
+<button type="button" class="ks-btn text-sm mb-4" (click)="network()"><ks-icon name="graph" [size]="16" /> Pokaż współpracowników</button>
+<h3 class="font-semibold mb-2">Obejrzane tytuły</h3>
+<ul class="space-y-1.5">
+  @for (t of titles(); track t.key) {
+    <li class="flex items-center gap-2 text-sm">
+      <ks-ticket [rating]="t.rating" />
+      <span class="flex-1">{{ t.title }}</span>
+      <span class="text-ks-muted tabular">{{ t.year }}</span>
+    </li>
+  }
+</ul>
+<p class="text-xs text-ks-muted mt-4">Zdjęcie: TMDB. Narodowość: Wikidata.</p>

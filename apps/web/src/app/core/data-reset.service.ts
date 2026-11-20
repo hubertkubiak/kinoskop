@@ -2,7 +2,7 @@ import { Dialog } from '@angular/cdk/dialog';
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { ConfirmDialog, type ConfirmData } from '../ui/confirm-dialog';
+import { ConfirmDialog, type ConfirmData } from '../ui/confirm-dialog/confirm-dialog';
 import { LibraryStore } from './library.store';
 
 /** Hooks run on "Usuń moje dane" (e.g. the AI key store registers itself here). */

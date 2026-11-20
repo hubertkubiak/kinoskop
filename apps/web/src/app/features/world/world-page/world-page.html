@@ -1,0 +1,25 @@
+<h1 class="font-display text-4xl uppercase mb-4">Świat</h1>
+<ks-chart-card heading="Kraje produkcji" [option]="mapOption()" [table]="countryTable()" height="420px"
+  [empty]="!mapReady() || countries().length === 0" [emptyText]="mapReady() ? 'Brak danych o krajach.' : 'Ładuję mapę…'">
+  <div slot="controls" class="flex gap-2 mb-2" role="radiogroup" aria-label="Miara">
+    <button type="button" role="radio" class="ks-chip pr-3 text-xs" [attr.aria-checked]="metric() === 'count'"
+      [class.!border-ks-accent]="metric() === 'count'" (click)="metric.set('count')">Liczba tytułów</button>
+    <button type="button" role="radio" class="ks-chip pr-3 text-xs" [attr.aria-checked]="metric() === 'avg'"
+      [class.!border-ks-accent]="metric() === 'avg'" (click)="metric.set('avg')">Średnia ocena</button>
+  </div>
+</ks-chart-card>
+
+<div class="grid gap-4 xl:grid-cols-2 mt-4">
+  <ks-chart-card heading="Ranking krajów" [option]="countryBars()" [table]="countryTable()" [height]="barsHeight(countries().length)" />
+  <ks-chart-card heading="Narodowość twórców"
+    subtitle="Wielokrotne obywatelstwo liczone dla każdego kraju; brak danych jako „nieznana”"
+    [option]="natBars()" [table]="natTable()" [height]="barsHeight(nationalities().length)">
+    <div slot="controls" class="flex gap-2 mb-2" role="tablist" aria-label="Rola">
+      <button type="button" role="tab" class="ks-chip pr-3 text-xs" [attr.aria-selected]="role() === 'director'"
+        [class.!border-ks-accent]="role() === 'director'" (click)="role.set('director')">Reżyserzy</button>
+      <button type="button" role="tab" class="ks-chip pr-3 text-xs" [attr.aria-selected]="role() === 'cast'"
+        [class.!border-ks-accent]="role() === 'cast'" (click)="role.set('cast')">Aktorzy (top 10 obsady)</button>
+    </div>
+  </ks-chart-card>
+</div>
+<p class="text-xs text-ks-muted mt-3">Mapa: Natural Earth (domena publiczna). Narodowości: Wikidata (P27).</p>

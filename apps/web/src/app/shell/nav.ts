@@ -1,4 +1,4 @@
-import type { IconName } from '../ui/icon';
+import type { IconName } from '../ui/icon/icon';
 
 export interface NavItem {
   path: string;

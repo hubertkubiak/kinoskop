@@ -1,0 +1,4 @@
+<button type="button" class="ks-btn text-sm min-h-6" [attr.aria-pressed]="light()" (click)="toggle()"
+  [attr.aria-label]="light() ? 'Włącz motyw ciemny' : 'Włącz motyw jasny'">
+  <span aria-hidden="true">{{ light() ? '☾' : '☀' }}</span>
+</button>

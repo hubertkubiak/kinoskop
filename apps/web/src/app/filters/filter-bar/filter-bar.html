@@ -1,0 +1,27 @@
+<div class="flex items-center gap-2 flex-wrap">
+  <button type="button" class="ks-btn text-sm" [attr.aria-expanded]="open()" aria-controls="ks-filter-panel"
+    (click)="open.set(!open())">
+    <ks-icon name="filter" [size]="16" /> Filtry
+    @if (fs.activeCount()) { <span class="tabular text-ks-accent">({{ fs.activeCount() }})</span> }
+  </button>
+  <p class="text-sm text-ks-muted tabular" aria-live="polite">
+    Pasuje: <strong class="text-ks-text">{{ fmt(fs.filtered().length) }}</strong> z {{ fmt(fs.total()) }}
+  </p>
+  <ul class="flex gap-1.5 flex-wrap" aria-label="Aktywne filtry">
+    @for (chip of chips(); track chip.id) {
+      <li class="ks-chip">
+        {{ chip.label }}
+        <button type="button" class="rounded-full min-w-6 min-h-6 grid place-items-center hover:text-ks-accent" [attr.aria-label]="'Usuń filtr ' + chip.label"
+          (click)="fs.update(chip.remove)">
+          <ks-icon name="close" [size]="14" />
+        </button>
+      </li>
+    }
+    @if (chips().length > 1) {
+      <li><button type="button" class="text-xs text-ks-muted underline px-1" (click)="fs.reset()">Wyczyść</button></li>
+    }
+  </ul>
+</div>
+@if (open()) {
+  <ks-filter-panel id="ks-filter-panel" (closed)="open.set(false)" />
+}

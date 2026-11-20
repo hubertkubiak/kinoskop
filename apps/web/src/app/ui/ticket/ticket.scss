@@ -1,0 +1,8 @@
+.t { --n: 5px; display: inline-grid; place-items: center; min-width: 34px; height: 24px; padding: 0 8px;
+  background: var(--ks-accent); color: var(--ks-accent-ink); font-family: var(--ks-font-display); font-size: 16px;
+  border-radius: 4px;
+  -webkit-mask: radial-gradient(circle var(--n) at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat,
+                radial-gradient(circle var(--n) at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
+          mask: radial-gradient(circle var(--n) at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat,
+                radial-gradient(circle var(--n) at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat; }
+.muted { background: var(--ks-surface-2); color: var(--ks-text-muted); }

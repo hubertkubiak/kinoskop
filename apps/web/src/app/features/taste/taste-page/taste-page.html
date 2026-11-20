@@ -1,0 +1,82 @@
+@if (network(); as net) {
+  <h1 class="font-display text-4xl uppercase mb-2">Współpracownicy: {{ net.person?.name ?? 'twórca' }}</h1>
+  <p class="text-sm text-ks-muted mb-4">
+    Osoby, z którymi ten twórca pracował w co najmniej 2 obejrzanych przez Ciebie tytułach.
+    <a routerLink="/gust" class="underline text-ks-accent ml-1">Wróć do „Twój gust”</a>
+  </p>
+  <ul class="grid gap-3 md:grid-cols-2">
+    @for (c of net.collaborators; track c.key) {
+      <li class="ks-card p-3 flex gap-3">
+        <ks-poster class="w-12 h-16 shrink-0" [src]="c.person.profileUrl" [title]="c.person.name" />
+        <div class="min-w-0 flex-1">
+          <p class="font-semibold">
+            <button type="button" class="hover:underline text-left" (click)="openNetwork(c.key)">{{ c.person.name }}</button>
+          </p>
+          <p class="text-xs text-ks-muted tabular mb-1">{{ c.titles.length }} wspólnych tytułów · Twoja śr. {{ avg(c.avg) }}</p>
+          <p class="text-sm truncate">{{ titlesText(c.titles) }}</p>
+        </div>
+      </li>
+    } @empty {
+      <li class="ks-card p-4 text-ks-muted">Brak osób z co najmniej 2 wspólnymi tytułami.</li>
+    }
+  </ul>
+} @else {
+  <h1 class="font-display text-4xl uppercase mb-2">Twój gust</h1>
+  <p class="text-sm text-ks-muted mb-5">
+    Co sprawia, że oceniasz wyżej lub niżej niż zwykle (Twoja średnia: <strong class="tabular">{{ avg(aff().overall) }}</strong>).
+    Brane są pod uwagę cechy z co najmniej {{ minTitles }} ocenionymi tytułami; mała liczba tytułów jest „ściągana” w stronę średniej, żeby przypadek nie wygrywał.
+  </p>
+
+  @for (side of sides(); track side.title) {
+    <section class="mb-6" [attr.aria-label]="side.title">
+      <h2 class="font-display text-2xl uppercase mb-3">{{ side.title }}</h2>
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        @for (group of side.groups; track group.kind) {
+          <div class="ks-card p-4">
+            <h3 class="font-semibold mb-2">{{ group.label }}</h3>
+            <ol class="space-y-1.5">
+              @for (a of group.rows; track a.key) {
+                <li class="flex items-center gap-2 text-sm">
+                  @if (a.person) {
+                    <button type="button" class="flex-1 truncate text-left hover:underline" (click)="openNetwork(a.key)">{{ a.label }}</button>
+                  } @else {
+                    <span class="flex-1 truncate">{{ label(a) }}</span>
+                  }
+                  <span class="text-ks-muted tabular" [attr.aria-label]="a.n + ' tytułów'">{{ a.n }}×</span>
+                  <span class="tabular w-12 text-right" [class.text-ks-positive]="a.lift > 0" [class.text-ks-negative]="a.lift < 0">
+                    {{ a.lift > 0 ? '+' : '−' }}{{ avg(abs(a.lift)) }}
+                  </span>
+                </li>
+              } @empty {
+                <li class="text-sm text-ks-muted">Nic wyraźnego.</li>
+              }
+            </ol>
+          </div>
+        }
+      </div>
+    </section>
+  }
+  <p class="text-xs text-ks-muted mb-6">
+    Liczba po prawej to o ile punktów wyżej (+) lub niżej (−) niż zwykle oceniasz tytuły z tą cechą. „5×” = 5 ocenionych tytułów.
+    Kliknij osobę, aby zobaczyć jej współpracowników.
+  </p>
+
+  <section class="ks-card p-4" aria-labelledby="ks-duos">
+    <h2 id="ks-duos" class="font-display text-2xl uppercase mb-1">Sprawdzone duety</h2>
+    <p class="text-sm text-ks-muted mb-3">Reżyser i aktor z co najmniej 3 wspólnymi tytułami spośród ocenionych.</p>
+    <ol class="grid gap-x-6 gap-y-2 md:grid-cols-2">
+      @for (d of duos(); track d.director.name + d.actor.name) {
+        <li class="flex items-center gap-3 text-sm">
+          <ks-ticket [rating]="round(d.avg)" />
+          <span class="flex-1 min-w-0">
+            <span class="font-semibold">{{ d.director.name }}</span> × {{ d.actor.name }}
+            <span class="block text-xs text-ks-muted truncate">{{ titlesText(d.titles) }}</span>
+          </span>
+          <span class="text-ks-muted tabular">{{ d.titles.length }}×</span>
+        </li>
+      } @empty {
+        <li class="text-sm text-ks-muted">Brak duetów z co najmniej 3 wspólnymi tytułami.</li>
+      }
+    </ol>
+  </section>
+}

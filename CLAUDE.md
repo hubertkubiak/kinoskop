@@ -10,6 +10,7 @@
 
 ## Konwencje
 - Angular 22: standalone components, zoneless, signals (`signal`, `computed`, `input()`, `output()`), nowy control flow (`@if`, `@for`), `ChangeDetectionStrategy.OnPush`, lazy routes i `@defer` dla ciężkich widoków. Bez NgModules.
+- Każdy komponent we własnym folderze `nazwa/` z plikami `nazwa.ts`, `nazwa.html`, `nazwa.scss` (`templateUrl`, `styleUrl`; bez szablonów i stylów inline). Wyjątki: `app.ts` w `src/app` i `shell/shell.ts`, których folder ma już ich nazwę.
 - Logika statystyk i filtrów wyłącznie w `libs/stats` (czyste funkcje, bez Angulara), pokryta testami Vitest.
 - Schematy danych wyłącznie w `libs/shared` (Zod), typy przez `z.infer`.
 - Kolory, odstępy i typografia tylko przez tokeny z SPEC §9.3; żadnych zahardkodowanych kolorów w komponentach.
