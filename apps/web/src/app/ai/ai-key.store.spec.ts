@@ -36,7 +36,7 @@ describe('AiKeyStore', () => {
     const store = create();
     store.setKey('sk-test-1234567890');
     store.setRemember(true);
-    expect(JSON.parse(sessionStorage.getItem(KEY)!)).toMatchObject({ provider: 'anthropic', apiKey: 'sk-test-1234567890' });
+    expect(JSON.parse(sessionStorage.getItem(KEY) ?? 'null')).toMatchObject({ provider: 'anthropic', apiKey: 'sk-test-1234567890' });
 
     TestBed.resetTestingModule();
     const restored = create();
@@ -57,9 +57,9 @@ describe('AiKeyStore', () => {
     const store = create();
     store.setKey('sk-test-1234567890');
     store.setProvider('openrouter');
-    const openrouter = AI_PROVIDERS.find((p) => p.id === 'openrouter')!;
+    const openrouter = AI_PROVIDERS.find((p) => p.id === 'openrouter');
     expect(store.apiKey()).toBe('');
-    expect(store.model()).toBe(openrouter.models[0].id);
+    expect(store.model()).toBe(openrouter?.models[0].id);
     expect(store.info().id).toBe('openrouter');
   });
 

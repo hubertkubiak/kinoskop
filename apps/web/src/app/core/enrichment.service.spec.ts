@@ -110,11 +110,7 @@ describe('EnrichmentService', () => {
   it('retries a failed batch with back-off', async () => {
     vi.useFakeTimers();
     const f = fakeApi([1]);
-    const ok = f.api.enrich.getMockImplementation()!;
-    f.api.enrich.mockImplementationOnce(async () => {
-      throw new Error('429');
-    });
-    f.api.enrich.mockImplementation(ok);
+    f.api.enrich.mockRejectedValueOnce(new Error('429'));
     const service = setup(f.api);
     await store.loadExport(exportFile([exportItem(1)]), 'import');
     const run = service.start();
