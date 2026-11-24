@@ -15,5 +15,5 @@
 <div class="grid gap-4 xl:grid-cols-2 mt-4">
   <ks-chart-card heading="Rok produkcji" subtitle="Liczba tytułów i średnia ocena wg dekady" [option]="decadeOption()" [table]="decadeTable()" />
   <ks-chart-card heading="Aktywność" subtitle="Liczba ocen: rok × miesiąc" [option]="heatOption()" [table]="heatTable()"
-    [height]="heatHeight()" [empty]="heat().years.length === 0" />
+    [height]="heatHeight()" [empty]="heat().years.length === 0" [emptyText]="heatEmptyText()" />
 </div>

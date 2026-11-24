@@ -17,6 +17,7 @@ apps/api/data/
 data/
 fixtures/filmweb/private/
 fixtures/filmweb/example/
+fixtures/filmweb/extracted_by_filmweb/
 
 # IDE
 /.idea

@@ -6,6 +6,8 @@ import { mockApi } from './support';
 const SAMPLE = join(__dirname, '../../../fixtures/export/sample-export.json');
 const CSV_DIR = join(__dirname, '../../../fixtures/export/csv');
 const CSV_FILES = readdirSync(CSV_DIR).filter((f) => f.endsWith('.csv')).map((f) => join(CSV_DIR, f));
+const VOTES_DIR = join(__dirname, '../../../fixtures/export/data-request');
+const VOTES_FILES = readdirSync(VOTES_DIR).filter((f) => f.endsWith('.json')).map((f) => join(VOTES_DIR, f));
 
 test('imports an export file end-to-end and enriches it', async ({ page }) => {
   const api = await mockApi(page);
@@ -89,6 +91,27 @@ test('imports several Letterboxd-format CSV files after a preview', async ({ pag
     const body = r.postDataJSON() as { items: { filmwebId: number; title?: string }[] };
     expect(body.items.every((i) => i.filmwebId < 0 && !!i.title)).toBe(true);
     expect(r.postData()).not.toMatch(/"rating"|"ratedAt"|"favorite"/);
+  }
+});
+
+test('imports votes files from a data request and explains the missing data', async ({ page }) => {
+  const api = await mockApi(page);
+  await page.goto('/start');
+  await page.getByTestId('file-input').setInputFiles(VOTES_FILES);
+  const preview = page.getByTestId('csv-preview');
+  await expect(preview).toContainText('Filmy: 5 ocenionych, 0 do obejrzenia');
+  await expect(preview).toContainText('Seriale: 2 ocenionych');
+  await expect(page.getByTestId('csv-missing')).toContainText('daty ocen');
+  await preview.getByText('Szczegóły plików').click();
+  await expect(preview).toContainText('widz_episodes.json → pominięty');
+  await page.getByTestId('csv-confirm').click();
+  await page.waitForURL('**/przeglad');
+  await expect(page.getByText('Pasuje:')).toContainText('7 z 7');
+  await expect(page.getByText('Wczytane pliki nie zawierają dat ocen').first()).toBeVisible();
+  const posts = api.requests.filter((r) => r.method() === 'POST' && r.url().includes('/api/enrich'));
+  expect(posts.length).toBeGreaterThan(0);
+  for (const r of posts) {
+    expect(r.postData()).not.toMatch(/"rating"|"comment"|prywatna notatka/);
   }
 });
 

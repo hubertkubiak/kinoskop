@@ -6,6 +6,7 @@ import {
   type ExportFile,
   importCsvFiles,
   looksLikeImportCsv,
+  looksLikeVotesJson,
   parseExportFile,
 } from '@kinoskop/shared';
 import { z } from 'zod';
@@ -29,8 +30,9 @@ export class ImportService {
   readonly pending = signal<{ file: ExportFile; summary: CsvImportSummary } | null>(null);
 
   /**
-   * Accepts either one Kinoskop JSON export (console script) or one or more CSV files from other
-   * tools (Letterboxd format). The format is detected by content.
+   * Accepts either one Kinoskop JSON export (console script) or one or more table files: CSV from
+   * other tools (Letterboxd format) or the votes JSON files from a personal data request. The
+   * format is detected by content.
    */
   async importFiles(files: readonly File[]): Promise<boolean> {
     this.error.set(null);
@@ -58,10 +60,11 @@ export class ImportService {
         );
         return false;
       }
-      const json = sources.filter(isJson);
+      // Votes files from a data request are JSON, but go through the table import (preview first).
+      const json = sources.filter((s) => isJson(s) && !looksLikeVotesJson(s.text));
       if (json.length) {
         if (sources.length > 1) {
-          this.error.set('Wybierz jeden plik kinoskop-eksport-….json albo same pliki CSV.');
+          this.error.set('Wybierz jeden plik kinoskop-eksport-….json albo same pliki CSV lub pliki ocen z kopii danych.');
           return false;
         }
         const result = parseExportFile(json[0].text);
@@ -75,7 +78,7 @@ export class ImportService {
       const unknown = sources.find((s) => !looksLikeImportCsv(s.name, s.text));
       if (unknown) {
         this.error.set(
-          `Nie rozpoznaję formatu pliku „${unknown.name}”. Obsługiwane: kinoskop-eksport-….json, CSV z kolumną Title (format Letterboxd) oraz tabele Filmweb2Letterboxd z kolumną FilmwebID.`,
+          `Nie rozpoznaję formatu pliku „${unknown.name}”. Obsługiwane: kinoskop-eksport-….json, pliki ocen z kopii danych (JSON z listą „votes”), CSV z kolumną Title (format Letterboxd) oraz tabele Filmweb2Letterboxd z kolumną FilmwebID.`,
         );
         return false;
       }

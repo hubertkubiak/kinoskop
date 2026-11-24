@@ -11,15 +11,24 @@ export const IMPORT_STRINGS = {
   safetyTitle: 'Czy to bezpieczne?',
   safety:
     'Skrypt tylko czyta Twoje dane (zapytania GET), niczego nie zmienia i nigdzie niczego nie wysyła; jedynie zapisuje plik na Twoim dysku. Żeby kolejny import był szybszy, zapamiętuje w pamięci przeglądarki tytuły pobrane do dopasowania. Kod jest jawny powyżej. Ogólna zasada: nigdy nie wklejaj w konsolę kodu, którego nie rozumiesz albo którego źródłu nie ufasz.',
-  drop: 'Przeciągnij tutaj plik kinoskop-eksport-….json albo pliki CSV',
+  drop: 'Przeciągnij tutaj plik kinoskop-eksport-….json, pliki ocen z kopii danych (JSON) albo pliki CSV',
   pick: 'albo wybierz pliki',
-  csvTitle: 'Masz już eksport z innego narzędzia?',
+  csvTitle: 'Masz już eksport z innego narzędzia albo kopię swoich danych?',
   csvLead:
     'Kinoskop wczyta też pliki CSV w formacie Letterboxd – np. z konwerterów ocen do tego formatu (Title, Year, WatchedDate, Rating10) albo eksport z Letterboxd (Name, Year, Rating). Możesz wybrać kilka plików naraz; rodzaj (film, serial, gra) i listę (oceny, „chcę zobaczyć”) rozpoznamy po nazwie pliku.',
   csvLimits:
     'Takie pliki nie zawierają identyfikatorów tytułów ani ulubionych, więc tytuły dopasowujemy po nazwie i roku (wymaga klucza TMDB w API). Część pozycji może trzeba będzie potwierdzić w widoku Weryfikacja. Najdokładniejsze dane da skrypt powyżej.',
   csvArchive:
     'Wyjątek: tabele archiwum z Filmweb2Letterboxd (Filmweb2Letterboxd_wstepny_….csv i Filmweb2Letterboxd_pelny_….csv) mają identyfikatory tytułów, ulubione i gry, więc dopasujemy je tak samo jak plik ze skryptu. Plik wstępny (bez tytułów) możesz wczytać od razu, a plik pełny (z tytułami) później – uzupełni wczytane dane bez utraty dopasowań. Pozostałe pliki z tej samej paczki pominiemy.',
+  csvVotes:
+    'Kopia danych od serwisu z ocenami (np. po wniosku o dostęp do swoich danych, RODO art. 15): pliki …_films.json i …_serials.json z listą „votes” wczytasz tutaj tak jak CSV – możesz wybrać je razem. Mają tylko polski tytuł, rok i ocenę, więc tytuły dopasujemy po nazwie i roku (wymaga klucza TMDB w API), a statystyki będą skromniejsze: bez dat ocen nie pokażemy wykresów w czasie, nie ma też ulubionych ani listy „chcę zobaczyć”. Plik z ocenami odcinków i komentarze pomijamy.',
+  previewMissing: (labels: string[]) =>
+    `Tych danych nie ma w wybranych plikach: ${labels.join(', ')}. Pozostałe statystyki działają normalnie; wykresy, które ich potrzebują, wyjaśnią, dlaczego są puste.`,
+  missingLabels: {
+    dates: 'daty ocen (oceny w czasie, surowość w czasie, aktywność)',
+    favorites: 'ulubione',
+    want2see: 'lista „chcę zobaczyć”',
+  },
   csvWithoutTitles: (n: number) =>
     `${n} pozycji nie ma tytułu: dopasujemy tylko te, które zna Wikidata. Gdy Filmweb2Letterboxd zapisze plik Filmweb2Letterboxd_pelny_….csv (z tytułami), wczytaj go tutaj – uzupełni resztę bez utraty dopasowań.`,
   previewTitle: 'Sprawdź, co wczytamy',
@@ -37,6 +46,7 @@ export const IMPORT_STRINGS = {
     ['„Za dużo zapytań”', 'Skrypt sam zwalnia; przy uporczywych błędach spróbuj za kilka minut.'],
     ['Telefon lub tablet', 'Import działa tylko na komputerze, przeglądanie statystyk również na telefonie.'],
     ['Mój plik CSV nie jest rozpoznawany', 'Plik musi mieć wiersz nagłówka z kolumną Title (albo Name). Opcjonalnie: Year, WatchedDate (RRRR-MM-DD), Rating10 (1–10) lub Rating (0,5–5 gwiazdek). Tabele archiwum Filmweb2Letterboxd rozpoznajemy po kolumnach List, Kind i FilmwebID.'],
+    ['Mam pliki JSON z kopii danych z serwisu', 'Wybierz razem pliki …_films.json i …_serials.json (plik …_episodes.json możesz dołączyć – zostanie pominięty). To nie jest plik kinoskop-eksport, więc przed importem zobaczysz podgląd, jak przy CSV.'],
     ['Plik nie przechodzi walidacji', 'Komunikat wskaże wersję schematu. Upewnij się, że używasz najnowszego skryptu i zgłoś problem, jeśli błąd się powtarza.'],
   ] as const,
 } as const;

@@ -11,6 +11,10 @@ import Dexie from 'dexie';
 import { type AiErasRow, KinoskopDb, type ItemRow, type MetaRow } from './db';
 import { hasSessionCookie, setSessionCookie } from './session';
 
+/** Empty-chart text for charts over time when the imported data has no rating dates. */
+export const NO_RATING_DATES_TEXT =
+  'Wczytane pliki nie zawierają dat ocen (np. kopia danych z serwisu albo CSV bez WatchedDate), więc tego wykresu nie da się narysować.';
+
 /**
  * Session data of the user: export, enrichments, manual overrides and AI eras.
  * Persisted in IndexedDB; falls back to memory when IndexedDB is unavailable (SPEC §6).
@@ -28,6 +32,14 @@ export class LibraryStore {
   readonly aiEras = signal<ReadonlyMap<string, AiErasRow>>(new Map());
 
   readonly hasData = computed(() => this.items().length > 0);
+  /**
+   * False when there are ratings but none has a date (e.g. votes from a data request or a CSV
+   * without WatchedDate): charts over time cannot be drawn and say so instead of "no data".
+   */
+  readonly hasRatingDates = computed(() => {
+    const rated = this.items().filter((i) => i.list === 'rated');
+    return !rated.length || rated.some((i) => i.ratedAt);
+  });
   readonly isDemo = computed(() => this.meta()?.mode === 'demo');
 
   /** Export items joined with their effective enrichment (override > backend) and AI eras. */

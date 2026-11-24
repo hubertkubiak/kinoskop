@@ -7,6 +7,7 @@ import { ChartCard } from '../../../charts/chart-card/chart-card';
 import { ChartTheme } from '../../../charts/theme';
 import { FiltersStore } from '../../../core/filters.store';
 import { fmtAvg } from '../../../core/format';
+import { LibraryStore, NO_RATING_DATES_TEXT } from '../../../core/library.store';
 
 const MONTHS = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'];
 
@@ -19,6 +20,10 @@ const MONTHS = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', '
 export class ErasPage {
   readonly fs = inject(FiltersStore);
   private readonly theme = inject(ChartTheme);
+  private readonly store = inject(LibraryStore);
+  readonly heatEmptyText = computed(() =>
+    this.store.hasRatingDates() ? 'Brak danych dla wybranych filtrów.' : NO_RATING_DATES_TEXT,
+  );
 
   readonly eras = computed(() => eraStats(this.fs.filtered(), this.fs.filters().erasCertainOnly));
   readonly decades = computed(() => decadeBuckets(this.fs.filtered()));

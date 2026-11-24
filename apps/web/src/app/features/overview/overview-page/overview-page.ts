@@ -6,6 +6,7 @@ import { lineOverTime, ratingHistogram } from '../../../charts/builders';
 import { ChartTheme } from '../../../charts/theme';
 import { FiltersStore } from '../../../core/filters.store';
 import { fmtAvg, fmtDuration, fmtInt } from '../../../core/format';
+import { LibraryStore, NO_RATING_DATES_TEXT } from '../../../core/library.store';
 import { KpiTile } from '../../../ui/kpi-tile/kpi-tile';
 
 @Component({
@@ -17,7 +18,11 @@ import { KpiTile } from '../../../ui/kpi-tile/kpi-tile';
 export class OverviewPage {
   private readonly fs = inject(FiltersStore);
   private readonly theme = inject(ChartTheme);
+  private readonly store = inject(LibraryStore);
   readonly kinds = KINDS;
+  readonly timeEmptyText = computed(() =>
+    this.store.hasRatingDates() ? 'Brak danych dla wybranych filtrów.' : NO_RATING_DATES_TEXT,
+  );
   readonly labels = KIND_LABELS;
   readonly fmt = fmtInt;
   readonly avg = fmtAvg;

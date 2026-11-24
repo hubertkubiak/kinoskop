@@ -104,7 +104,8 @@
         <h3 id="ks-csv-h" class="font-semibold mb-2">{{ s.csvTitle }}</h3>
         <p class="text-sm text-ks-muted mb-2">{{ s.csvLead }}</p>
         <p class="text-sm text-ks-muted mb-2">{{ s.csvLimits }}</p>
-        <p class="text-sm text-ks-muted">{{ s.csvArchive }}</p>
+        <p class="text-sm text-ks-muted mb-2">{{ s.csvArchive }}</p>
+        <p class="text-sm text-ks-muted" data-testid="votes-info">{{ s.csvVotes }}</p>
       </section>
 
       @if (importer.pending(); as p) {
@@ -133,9 +134,14 @@
               {{ s.csvWithoutTitles(p.summary.withoutTitle) }}
             </p>
           }
+          @if (missingLabels(p.summary.missing); as missing) {
+            <p class="text-sm p-3 mb-3 rounded-ks-sm bg-ks-surface-2" role="note" data-testid="csv-missing">
+              {{ s.previewMissing(missing) }}
+            </p>
+          }
           @if (importer.api.awake() && !importer.api.config().tmdbEnabled) {
             <p class="text-sm p-3 mb-3 rounded-ks-sm bg-ks-surface-2" role="note" data-testid="csv-no-tmdb">
-              <strong>Uwaga:</strong> API działa bez klucza TMDB, więc tytułów z CSV nie da się dopasować – zobaczysz
+              <strong>Uwaga:</strong> API działa bez klucza TMDB, więc tytułów z tych plików nie da się dopasować – zobaczysz
               tylko statystyki ocen. Dodaj <code>TMDB_API_TOKEN</code> do <code>.env</code> i uruchom API ponownie.
             </p>
           }

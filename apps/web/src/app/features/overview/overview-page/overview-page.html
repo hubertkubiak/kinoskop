@@ -14,7 +14,7 @@
 
 <div class="grid gap-4 lg:grid-cols-2 mb-6">
   <ks-chart-card heading="Oceny w czasie" subtitle="Liczba ocen miesięcznie" [option]="timeOption()" [table]="timeTable()"
-    [empty]="time().length === 0" />
+    [empty]="time().length === 0" [emptyText]="timeEmptyText()" />
   <ks-chart-card heading="Rozkład ocen" [option]="distOption()" [table]="distTable()" [empty]="!k.averageRating" />
 </div>
 

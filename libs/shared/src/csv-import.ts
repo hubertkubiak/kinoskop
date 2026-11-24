@@ -1,5 +1,6 @@
 import { EXPORT_SCHEMA_VERSION, type ExportFile, type ExportItem } from './export-file';
 import { itemKey, type Kind, type ListKind } from './kinds';
+import { classifyVotesFileName, looksLikeVotesJson, parseVotesJson } from './votes-import';
 
 /**
  * Import of CSV files produced by other tools. Two families:
@@ -10,6 +11,8 @@ import { itemKey, type Kind, type ListKind } from './kinds';
  *   `Filmweb2Letterboxd_pelny_….csv` with titles): one row per list entry with `List`, `Kind` and
  *   `FilmwebID`, so items keep their Filmweb ID and are matched through Wikidata exactly like
  *   the console script's export; titles, when present, are used for the rest.
+ * - Votes files from a personal data request to the rating site (`…_films.json`, see votes-import.ts):
+ *   titles, years and ratings only, matched by title and year like the Letterboxd format.
  * Only the user's own data is taken: rating, dates, favourites, lists, and title/year for matching.
  */
 
@@ -38,6 +41,11 @@ export interface CsvImportSummary {
   withFilmwebId: number;
   /** Items with a Filmweb ID but no title: only those known to Wikidata can be matched. */
   withoutTitle: number;
+  /**
+   * Data the files do not contain, so the matching statistics stay empty (shown in the preview):
+   * rating dates (charts over time), favourites, the "want to see" list.
+   */
+  missing: ('dates' | 'favorites' | 'want2see')[];
 }
 
 export type CsvImportResult =
@@ -120,7 +128,7 @@ const isFw2lLetterboxdFile = (name: string) => /^filmweb2letterboxd_(watched|wat
 
 /** True when importCsvFiles can handle the file (used for format detection in the app). */
 export function looksLikeImportCsv(name: string, text: string): boolean {
-  return looksLikeTitleCsv(text) || looksLikeIdCsv(text) || isErrorReport(name, text);
+  return looksLikeVotesJson(text) || looksLikeTitleCsv(text) || looksLikeIdCsv(text) || isErrorReport(name, text);
 }
 
 const normTitle = (t: string) => t.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase();
@@ -237,7 +245,40 @@ export function importCsvFiles(sources: CsvSource[], now = new Date()): CsvImpor
   // entries without IDs – importing both would duplicate every title.
   const hasArchive = sources.some((s) => looksLikeIdCsv(s.text));
 
+  /** Adds a title-only entry (no title ID); returns false for an invalid title. */
+  const addTitleRow = (kind: Kind, list: ListKind, rawTitle: string | undefined, year: number | undefined, rating?: number, ratedAt?: string) => {
+    const title = rawTitle?.trim();
+    if (!title || title.length > 500) return false;
+    const dedupe = `${kind}|${normTitle(title)}|${year ?? ''}`;
+    const item: ExportItem = { filmwebId: 0, kind, list, title, ...(year !== undefined ? { year } : {}) };
+    if (list === 'rated') {
+      if (rating !== undefined) item.rating = rating;
+      if (ratedAt) item.ratedAt = ratedAt;
+    }
+    const prev = byKey.get(dedupe);
+    if (prev) {
+      duplicates++;
+      // Prefer the rated entry; otherwise keep the first one.
+      if (prev.list === 'want2see' && item.list === 'rated') byKey.set(dedupe, item);
+      return true;
+    }
+    byKey.set(dedupe, item);
+    return true;
+  };
+
   for (const src of sources) {
+    const votes = looksLikeVotesJson(src.text) ? parseVotesJson(src.text) : null;
+    if (votes) {
+      const kind = classifyVotesFileName(src.name);
+      if (kind === 'episode') {
+        ignoredFiles.push({ name: src.name, reason: 'oceny odcinków – Kinoskop liczy seriale w całości (są w pliku z serialami)' });
+        continue;
+      }
+      const summary: CsvFileSummary = { name: src.name, kind, list: 'rated', rows: votes.rows.length + votes.skipped, skipped: votes.skipped };
+      for (const v of votes.rows) if (!addTitleRow(kind, 'rated', v.title, v.year, v.rating)) summary.skipped++;
+      files.push(summary);
+      continue;
+    }
     if (isErrorReport(src.name, src.text)) {
       ignoredFiles.push({ name: src.name, reason: 'raport błędów, nie zawiera ocen' });
       continue;
@@ -275,34 +316,7 @@ export function importCsvFiles(sources: CsvSource[], now = new Date()): CsvImpor
     const summary: CsvFileSummary = { name: src.name, kind, list, rows: rows.length, skipped: 0 };
     for (const cells of rows) {
       const row = Object.fromEntries(header.map((h, i) => [h, cells[i] ?? '']));
-      const title = cells[titleCol]?.trim();
-      if (!title || title.length > 500) {
-        summary.skipped++;
-        continue;
-      }
-      const year = parseYear(row['year']);
-      const dedupe = `${kind}|${normTitle(title)}|${year ?? ''}`;
-      const item: ExportItem = {
-        filmwebId: 0,
-        kind,
-        list,
-        title,
-        ...(year !== undefined ? { year } : {}),
-      };
-      if (list === 'rated') {
-        const rating = parseRating(row);
-        const ratedAt = parseDate(row);
-        if (rating !== undefined) item.rating = rating;
-        if (ratedAt) item.ratedAt = ratedAt;
-      }
-      const prev = byKey.get(dedupe);
-      if (prev) {
-        duplicates++;
-        // Prefer the rated entry; otherwise keep the first one.
-        if (prev.list === 'want2see' && item.list === 'rated') byKey.set(dedupe, item);
-        continue;
-      }
-      byKey.set(dedupe, item);
+      if (!addTitleRow(kind, list, cells[titleCol], parseYear(row['year']), parseRating(row), parseDate(row))) summary.skipped++;
     }
     files.push(summary);
   }
@@ -335,11 +349,20 @@ export function importCsvFiles(sources: CsvSource[], now = new Date()): CsvImpor
   };
   let unrated = 0;
   let withoutTitle = 0;
+  let dated = 0;
+  let favorites = 0;
   for (const it of items) {
     counts[it.kind][it.list]++;
     if (it.list === 'rated' && it.rating === undefined) unrated++;
     if (it.filmwebId > 0 && !it.title && !it.originalTitle) withoutTitle++;
+    if (it.ratedAt) dated++;
+    if (it.favorite) favorites++;
   }
+  const rated = items.filter((i) => i.list === 'rated').length;
+  const missing: CsvImportSummary['missing'] = [];
+  if (rated && !dated) missing.push('dates');
+  if (rated && !favorites) missing.push('favorites');
+  if (!items.some((i) => i.list === 'want2see')) missing.push('want2see');
 
   const file: ExportFile = {
     schemaVersion: EXPORT_SCHEMA_VERSION,
@@ -354,6 +377,6 @@ export function importCsvFiles(sources: CsvSource[], now = new Date()): CsvImpor
   return {
     ok: true,
     file,
-    summary: { files, ignoredFiles, counts, unrated, duplicates, withFilmwebId: byId.size, withoutTitle },
+    summary: { files, ignoredFiles, counts, unrated, duplicates, withFilmwebId: byId.size, withoutTitle, missing },
   };
 }

@@ -99,6 +99,30 @@ describe('ImportPage', () => {
     expect(f.componentInstance.dragOver()).toBe(false);
   });
 
+  it('describes the data-request files and lists what a preview lacks', async () => {
+    const f = await render();
+    expect(f.nativeElement.querySelector('[data-testid="votes-info"]')?.textContent).toContain('…_films.json');
+    importer.pending.set({
+      file: exportFile([]),
+      summary: {
+        files: [{ name: 'widz_films.json', kind: 'film', list: 'rated', rows: 2, skipped: 0 }],
+        ignoredFiles: [{ name: 'widz_episodes.json', reason: 'oceny odcinków' }],
+        counts: { film: { rated: 2, want2see: 0 }, serial: { rated: 0, want2see: 0 }, game: { rated: 0, want2see: 0 } },
+        unrated: 0,
+        duplicates: 0,
+        withFilmwebId: 0,
+        withoutTitle: 0,
+        missing: ['dates', 'want2see'],
+      },
+    });
+    await f.whenStable();
+    const note = f.nativeElement.querySelector('[data-testid="csv-missing"]')?.textContent ?? '';
+    expect(note).toContain('daty ocen');
+    expect(note).toContain('lista „chcę zobaczyć”');
+    expect(note).not.toContain('ulubione');
+    expect(pageText(f)).toContain('widz_episodes.json → pominięty: oceny odcinków');
+  });
+
   it('shows import errors', async () => {
     const f = await render();
     importer.error.set('Plik nie jest poprawnym JSON-em.');

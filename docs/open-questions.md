@@ -45,6 +45,9 @@ Poniżej lista z wstępnej implementacji (2026-11-18). SPEC.md zmieniany tylko p
   filmweb.pl, czytelne ostrzeżenie o karcie w tle (§5.3, §14.1, ADR 0003). Bez skracania przerw między zapytaniami.
 - 2026-11-19: Blueprint Render dla instancji dla znajomych, z włączonym importem skryptem; repo publiczne
   (§8.4, §12, ADR 0004). Wdraża autor; obraz API niesprawdzony lokalnie (Docker Desktop nie był uruchomiony).
+- 2026-11-24: import plików JSON z kopii danych serwisu (lista `votes`: tytuł z rokiem, ocena) ścieżką tabel;
+  odcinki i komentarze pomijane, brakujące dane (daty, ulubione, „chcę zobaczyć”) zgłaszane w podglądzie i na
+  wykresach w czasie (§5.4).
 
 ## Znane ograniczenia wstępnej wersji
 

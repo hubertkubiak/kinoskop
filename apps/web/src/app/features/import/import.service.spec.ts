@@ -78,6 +78,25 @@ describe('ImportService', () => {
     expect(enrichStart).toHaveBeenCalledOnce();
   });
 
+  it('routes votes files from a data request through the preview, not the export parser', async () => {
+    const films = textFile('widz_films.json', JSON.stringify({ votes: [{ title: 'Rejs (1970)', rate: 9 }, { title: 'Miś (1980)' }] }));
+    const episodes = textFile('widz_episodes.json', JSON.stringify({ votes: [{ title: 'Ranczo (2006 - 2016) Sezon 1 odcinek 1' }] }));
+    expect(await service.importFiles([films, episodes])).toBe(true);
+    expect(service.error()).toBeNull();
+    expect(service.pending()?.summary.counts.film.rated).toBe(2);
+    expect(service.pending()?.summary.missing).toContain('dates');
+    expect(service.pending()?.summary.ignoredFiles.map((f) => f.name)).toEqual(['widz_episodes.json']);
+    await service.confirmPending();
+    expect(store.items().map((i) => i.title)).toEqual(['Rejs', 'Miś']);
+    expect(store.hasRatingDates()).toBe(false);
+  });
+
+  it('does not mix a script export with votes files', async () => {
+    const films = textFile('widz_films.json', JSON.stringify({ votes: [{ title: 'Rejs (1970)', rate: 9 }] }));
+    expect(await service.importFiles([json(), films])).toBe(false);
+    expect(service.error()).toContain('jeden plik');
+  });
+
   it('cancelPending drops the CSV summary', async () => {
     await service.importFiles([textFile('ratings.csv', 'Title,Year\nPierwszy,2001\n')]);
     service.cancelPending();

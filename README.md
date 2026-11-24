@@ -90,6 +90,14 @@ Kinoskop dopasowuje je tak jak plik ze skryptu. Plik wstępny możesz wczytać o
 Wikidata), a pełny później, bo uzupełni dane bez utraty dopasowań. Możesz przeciągnąć cały folder pobranych plików:
 raport błędów, surowe archiwum JSON i pliki Letterboxd tego narzędzia zostaną pominięte.
 
+### C. Masz kopię swoich danych z serwisu z ocenami
+
+Jeśli poprosisz serwis o kopię swoich danych (RODO art. 15), możesz dostać pliki JSON z listą `votes`, np.
+`…_films.json`, `…_serials.json` i `…_episodes.json`. Przeciągnij je razem na stronę importu: Kinoskop pokaże
+podgląd jak dla CSV i dopasuje tytuły po nazwie i roku. Te pliki mają tylko polski tytuł, rok i ocenę, więc
+statystyki są skromniejsze: bez dat ocen nie ma wykresów w czasie, nie ma też ulubionych ani listy „chcę zobaczyć”.
+Oceny odcinków i komentarze są pomijane. Szczegóły: SPEC §5.4.
+
 Chcesz tylko zobaczyć, co potrafi aplikacja? Kliknij **„Zobacz demo”**. To fikcyjny profil.
 
 ## 🛠️ Uruchomienie lokalne (dla dewelopera)

@@ -92,6 +92,14 @@ describe('LibraryStore', () => {
     expect(store.meta()).toMatchObject({ part: 'full', userName: 'Widz Testowy' });
   });
 
+  it('knows whether ratings have dates (charts over time)', async () => {
+    expect(store.hasRatingDates()).toBe(true);
+    await store.loadExport(exportFile([exportItem(1), exportItem(2, { list: 'want2see', rating: undefined })]), 'import');
+    expect(store.hasRatingDates()).toBe(false);
+    await store.loadExport(exportFile([exportItem(1, { ratedAt: '2024-01-01T00:00:00.000Z' }), exportItem(2)]), 'import');
+    expect(store.hasRatingDates()).toBe(true);
+  });
+
   it('clear wipes everything', async () => {
     await store.loadExport(exportFile([exportItem(1)]), 'import');
     await store.addEnrichments([enrichment(1)]);

@@ -2,7 +2,7 @@ import { Clipboard } from '@angular/cdk/clipboard';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { DomSanitizer, type SafeUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
-import { BRAND, KIND_LABELS, KINDS } from '@kinoskop/shared';
+import { BRAND, type CsvImportSummary, KIND_LABELS, KINDS } from '@kinoskop/shared';
 import { ENV } from '../../../core/env';
 import { LibraryStore } from '../../../core/library.store';
 import { FilmLeader } from '../../../ui/film-leader/film-leader';
@@ -67,6 +67,11 @@ export class ImportPage {
     this.dragOver.set(false);
     const files = Array.from(event.dataTransfer?.files ?? []);
     if (files.length) void this.importer.importFiles(files);
+  }
+
+  /** Labels of the data the chosen files lack; `null` when nothing is missing. */
+  missingLabels(missing: readonly CsvImportSummary['missing'][number][]): string[] | null {
+    return missing.length ? missing.map((m) => this.s.missingLabels[m]) : null;
   }
 
   readonly kindLabels = KIND_LABELS;

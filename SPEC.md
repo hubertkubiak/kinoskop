@@ -271,6 +271,11 @@ Druga, równorzędna ścieżka dla osób, które mają już eksport (decyzja aut
   - Plik wstępny jest częścią 1 (`part: 'base'`, `user.id = 0`); późniejszy plik CSV jest wtedy **scalany** z wczytanymi danymi jak część 2 skryptu (ADR 0003), więc dopasowania zostają.
   - W tej samej paczce pomijane są: raport błędów `Filmweb2Letterboxd_bledy.csv`, pliki Letterboxd tego narzędzia (`Filmweb2Letterboxd_watched_…`, `…_watchlist_…` – te same wpisy bez ID) oraz surowe archiwum `Filmweb2Letterboxd_archiwum_….json`; podgląd wymienia pominięte pliki z powodem. Pliki innych narzędzi z tej samej paczki są wczytywane normalnie.
   - Import CSV nadal nie generuje zapytań do Filmwebu (14.1 p. 7).
+- **Kopia danych z serwisu z ocenami** (decyzja autora 2026-11-24): pliki JSON, które serwis wysyła na prośbę o kopię danych (RODO art. 15), np. `<użytkownik>_films.json`, `<użytkownik>_serials.json`, `<użytkownik>_episodes.json`, każdy `{ "votes": [{ "title": "Tytuł (rok)", "rate": 1–10, "comment": "…" }] }` (`libs/shared/src/votes-import.ts`, fikcyjne fixture'y w `fixtures/export/data-request/`).
+  - Rozpoznawane po treści (obiekt z tablicą `votes`), nie jako plik `kinoskop-eksport`; idą tą samą ścieżką co CSV: podgląd przed zapisem, lokalne klucze, dopasowanie po tytule i roku (etap 2). Można je wybrać razem z plikami CSV.
+  - `title` kończy się rokiem albo zakresem lat (`(2018 - 2018)`, `(2022 - )`); bierzemy tytuł (polski) i pierwszy rok. Brak `rate` = pozycja bez oceny. Rodzaj z nazwy pliku: `films` → film, `serials` → serial, `games` → gra.
+  - Plik z odcinkami jest pomijany (Kinoskop liczy seriale w całości, ich oceny są w pliku z serialami). **Komentarze nigdy nie są wczytywane.**
+  - Pliki nie mają identyfikatorów tytułów, dat ocen, ulubionych ani listy „chcę zobaczyć” i tych danych nie da się pobrać z innych źródeł (to dane użytkownika). Podgląd importu wymienia brakujące dane (`summary.missing`, liczone dla każdego importu tabel), a wykresy w czasie (oceny w czasie, surowość w czasie, aktywność) zamiast „brak danych” mówią, że pliki nie zawierają dat ocen.
 - Filmatyk (`filmatyk.dat`) świadomie nieobsługiwany: projekt nierozwijany od 2020 r., a plik zawiera zapisaną sesję logowania do Filmwebu.
 
 ---

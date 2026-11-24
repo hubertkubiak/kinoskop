@@ -41,6 +41,13 @@ describe('OverviewPage', () => {
     expect(pageText(f)).toContain('Rozkład ocen');
   });
 
+  it('explains that the data has no rating dates (e.g. a data-request copy)', async () => {
+    await TestBed.inject(LibraryStore).loadExport(exportFile([exportItem(1, { rating: 8 })], { source: 'csv' }), 'import');
+    const f = await render();
+    expect(pageText(f)).toContain('Wczytane pliki nie zawierają dat ocen');
+    expect(tile(f, 'Średnia ocena')).toBe('8,0');
+  });
+
   it('shows empty charts without ratings', async () => {
     const f = await render();
     expect(tile(f, 'Średnia ocena')).toBe('–');

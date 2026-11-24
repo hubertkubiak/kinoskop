@@ -41,7 +41,7 @@
   <ks-chart-card heading="Surowość w czasie"
     subtitle="Rok wystawienia oceny. Różnica względem TMDB nie zależy od tego, czy oglądasz lepsze czy gorsze tytuły."
     [option]="harshnessOption()" [table]="harshnessTable()" height="320px" [empty]="harshness().length < 2"
-    emptyText="Za mało ocen z datą, żeby pokazać zmianę w czasie.">
+    [emptyText]="harshnessEmptyText()">
     @if (harshnessVerdict()) {
       <p class="text-sm mt-3"><strong>{{ harshnessVerdict() }}</strong></p>
     }

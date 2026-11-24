@@ -17,6 +17,7 @@ import { ChartTheme } from '../../../charts/theme';
 import { ApiClient } from '../../../core/api.client';
 import { FiltersStore } from '../../../core/filters.store';
 import { fmtAvg, fmtInt } from '../../../core/format';
+import { LibraryStore, NO_RATING_DATES_TEXT } from '../../../core/library.store';
 import { Ticket } from '../../../ui/ticket/ticket';
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
@@ -32,7 +33,11 @@ export class RatingsPage {
   private readonly fs = inject(FiltersStore);
   private readonly theme = inject(ChartTheme);
   readonly api = inject(ApiClient);
+  private readonly store = inject(LibraryStore);
   readonly avg = fmtAvg;
+  readonly harshnessEmptyText = computed(() =>
+    this.store.hasRatingDates() ? 'Za mało ocen z datą, żeby pokazać zmianę w czasie.' : NO_RATING_DATES_TEXT,
+  );
   readonly int = fmtInt;
   readonly pct = pct;
   readonly signed = signed;
