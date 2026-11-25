@@ -10,6 +10,9 @@ export interface ChartTable {
   rows: (string | number | undefined)[][];
 }
 
+/** Default text of an empty chart. */
+export const NO_DATA_TEXT = 'Brak danych dla wybranych filtrów.';
+
 let uid = 0;
 
 /**
@@ -31,7 +34,7 @@ export class ChartCard {
   readonly table = input<ChartTable>();
   readonly height = input('300px');
   readonly empty = input(false);
-  readonly emptyText = input('Brak danych dla wybranych filtrów.');
+  readonly emptyText = input(NO_DATA_TEXT);
   readonly asTable = signal(false);
   readonly chartClick = signal<unknown>(null);
   readonly headingId = `ks-chart-${++uid}`;

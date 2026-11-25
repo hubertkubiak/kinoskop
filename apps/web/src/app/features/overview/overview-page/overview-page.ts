@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { KIND_LABELS, KINDS } from '@kinoskop/shared';
 import { funFacts, kpis, ratingDistribution, ratingsOverTime } from '@kinoskop/stats';
-import { ChartCard } from '../../../charts/chart-card/chart-card';
+import { ChartCard, NO_DATA_TEXT } from '../../../charts/chart-card/chart-card';
 import { lineOverTime, ratingHistogram } from '../../../charts/builders';
 import { ChartTheme } from '../../../charts/theme';
 import { FiltersStore } from '../../../core/filters.store';
@@ -21,7 +21,7 @@ export class OverviewPage {
   private readonly store = inject(LibraryStore);
   readonly kinds = KINDS;
   readonly timeEmptyText = computed(() =>
-    this.store.hasRatingDates() ? 'Brak danych dla wybranych filtrów.' : NO_RATING_DATES_TEXT,
+    this.store.hasRatingDates() ? NO_DATA_TEXT : NO_RATING_DATES_TEXT,
   );
   readonly labels = KIND_LABELS;
   readonly fmt = fmtInt;

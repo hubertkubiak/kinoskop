@@ -35,9 +35,6 @@ export class RatingsPage {
   readonly api = inject(ApiClient);
   private readonly store = inject(LibraryStore);
   readonly avg = fmtAvg;
-  readonly harshnessEmptyText = computed(() =>
-    this.store.hasRatingDates() ? 'Za mało ocen z datą, żeby pokazać zmianę w czasie.' : NO_RATING_DATES_TEXT,
-  );
   readonly int = fmtInt;
   readonly pct = pct;
   readonly signed = signed;
@@ -109,6 +106,9 @@ export class RatingsPage {
 
   // --- "Surowość w czasie" ---------------------------------------------------------------
   readonly harshness = computed(() => harshnessByYear(this.fs.filtered()));
+  readonly harshnessEmptyText = computed(() =>
+    this.store.hasRatingDates() ? 'Za mało ocen z datą, żeby pokazać zmianę w czasie.' : NO_RATING_DATES_TEXT,
+  );
 
   readonly harshnessOption = computed<EChartsCoreOption>(() => {
     const p = this.theme.palette();

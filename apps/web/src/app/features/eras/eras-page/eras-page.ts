@@ -3,7 +3,7 @@ import { ERA_LABELS } from '@kinoskop/shared';
 import { activityHeatmap, decadeBuckets, eraStats } from '@kinoskop/stats';
 import type { EChartsCoreOption } from 'echarts/core';
 import { AiErasPanel } from '../../../ai/ai-eras-panel/ai-eras-panel';
-import { ChartCard } from '../../../charts/chart-card/chart-card';
+import { ChartCard, NO_DATA_TEXT } from '../../../charts/chart-card/chart-card';
 import { ChartTheme } from '../../../charts/theme';
 import { FiltersStore } from '../../../core/filters.store';
 import { fmtAvg } from '../../../core/format';
@@ -22,7 +22,7 @@ export class ErasPage {
   private readonly theme = inject(ChartTheme);
   private readonly store = inject(LibraryStore);
   readonly heatEmptyText = computed(() =>
-    this.store.hasRatingDates() ? 'Brak danych dla wybranych filtrów.' : NO_RATING_DATES_TEXT,
+    this.store.hasRatingDates() ? NO_DATA_TEXT : NO_RATING_DATES_TEXT,
   );
 
   readonly eras = computed(() => eraStats(this.fs.filtered(), this.fs.filters().erasCertainOnly));
