@@ -14,7 +14,7 @@ import { ThemeToggle } from './theme-toggle/theme-toggle';
   selector: 'ks-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, StatusBanners, SiteFooter, FilterBar, ThemeToggle],
-  templateUrl: './shell.html',
+  templateUrl: './shell.html',
 })
 export class Shell {
   readonly store = inject(LibraryStore);

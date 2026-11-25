@@ -27,7 +27,7 @@ const signed = (x: number) => `${x > 0 ? '+' : x < 0 ? '−' : ''}${fmtAvg(Math.
   selector: 'ks-ratings-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ChartCard, Ticket],
-  templateUrl: './ratings-page.html',
+  templateUrl: './ratings-page.html',
 })
 export class RatingsPage {
   private readonly fs = inject(FiltersStore);
