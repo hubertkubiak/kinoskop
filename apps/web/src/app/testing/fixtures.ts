@@ -1,4 +1,4 @@
-import { type Enrichment, emptyEnrichment, type ExportFile, type ExportItem, type Kind } from '@kinoskop/shared';
+import { type Enrichment, emptyEnrichment, type ExportFile, type ExportItem, type Kind, type Person } from '@kinoskop/shared';
 
 /** Test data builders shared by the service specs (fictional titles and users only). */
 
@@ -28,4 +28,9 @@ export function enrichment(filmwebId: number, patch: Partial<Enrichment> & { kin
 /** Minimal File stand-in: the services only read `name`, `size` and `text()`. */
 export function textFile(name: string, text: string): File {
   return { name, size: text.length, text: async () => text } as unknown as File;
+}
+
+/** Fictional creator with a TMDB id (person key `tmdb:<id>`). */
+export function person(name: string, tmdbId: number, nationalities: string[] = []): Person {
+  return { name, tmdbId, nationalities };
 }
